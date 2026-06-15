@@ -2,14 +2,10 @@ services:
   - type: web
     name: cutpro-api
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm install
     startCommand: npm run server
     healthCheckPath: /api/health
     envVars:
-      - key: DB_PATH
-        value: /data/cutpro.db
-    disk:
-      name: cutpro-data
-      mountPath: /data
-      sizeGB: 1
+      - key: DATABASE_URL
+        sync: false

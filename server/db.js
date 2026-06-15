@@ -1,21 +1,23 @@
-import Database from "better-sqlite3";
-import path from "path";
-import { fileURLToPath } from "url";
+import pg from "pg";
+import dotenv from "dotenv";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const db = new Database(process.env.DB_PATH || path.join(__dirname, "cutpro.db"));
+dotenv.config();
 
-db.pragma("journal_mode = WAL");
+const { Pool } = pg;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : false,
+});
 
-db.exec(`
+await pool.query(`
   CREATE TABLE IF NOT EXISTS services (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     price INTEGER NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS staff (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     short TEXT NOT NULL,
     init TEXT NOT NULL,
@@ -26,34 +28,39 @@ db.exec(`
     revenue INTEGER NOT NULL,
     appts INTEGER NOT NULL,
     color TEXT NOT NULL,
-    specialties TEXT NOT NULL,
+    specialties JSONB NOT NULL,
     phone TEXT NOT NULL,
     email TEXT NOT NULL,
-    active INTEGER NOT NULL
+    active BOOLEAN NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS appointments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     date TEXT NOT NULL,
     time TEXT NOT NULL,
     customer TEXT NOT NULL,
     phone TEXT NOT NULL,
     service TEXT NOT NULL,
     price INTEGER NOT NULL,
-    assigned TEXT NOT NULL,
+    assigned JSONB NOT NULL,
     status TEXT NOT NULL
   );
 `);
 
-const seedIfEmpty = (table, rows, insertSql, mapRow) => {
-  const count = db.prepare(`SELECT COUNT(*) AS c FROM ${table}`).get().c;
-  if (count > 0) return;
-  const stmt = db.prepare(insertSql);
-  const insertAll = db.transaction(items => {
-    for (const item of items) stmt.run(mapRow(item));
-  });
-  insertAll(rows);
+const seedIfEmpty = async (table, rows, columns, mapRow) => {
+  const { rows: [{ count }] } = await pool.query(`SELECT COUNT(*) FROM ${table}`);
+  if (Number(count) > 0) return;
+  for (const row of rows) {
+    const mapped = mapRow(row);
+    const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
+    await pool.query(`INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders})`, columns.map(c => mapped[c]));
+  }
+  await pool.query(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), (SELECT MAX(id) FROM ${table}))`);
 };
+
+const pad2 = n => String(n).padStart(2, "0");
+const toDateStr = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return toDateStr(d); };
 
 const SERVICES = [
   { id: 1, name: "Haircut", price: 20 },
@@ -76,44 +83,37 @@ const STAFF = [
 ];
 
 const APPOINTMENTS = [
-  { id: 1, date: "2026-06-09", time: "10:00", customer: "Amir Hassan", phone: "013-9012345", service: "Full Service", price: 50, assigned: ["Jordan T.", "Alex R."], status: "completed" },
-  { id: 2, date: "2026-06-09", time: "14:00", customer: "Farid Yusof", phone: "014-0123456", service: "Haircut", price: 20, assigned: ["Marcus B."], status: "completed" },
-  { id: 3, date: "2026-06-10", time: "09:00", customer: "Marcus Webb", phone: "012-3456789", service: "Skin Fade", price: 25, assigned: ["Jordan T."], status: "completed" },
-  { id: 4, date: "2026-06-10", time: "09:30", customer: "Darius King", phone: "013-2345678", service: "Beard Trim", price: 10, assigned: ["Alex R."], status: "completed" },
-  { id: 5, date: "2026-06-10", time: "10:00", customer: "Terrell Nash", phone: "014-3456789", service: "Haircut + Wash", price: 30, assigned: ["Jordan T."], status: "assigned" },
-  { id: 6, date: "2026-06-10", time: "10:30", customer: "Isaiah Cole", phone: "015-4567890", service: "Haircut", price: 20, assigned: ["Marcus B."], status: "assigned" },
-  { id: 7, date: "2026-06-10", time: "11:00", customer: "Quincy Adams", phone: "016-5678901", service: "Skin Fade", price: 25, assigned: ["Devon S."], status: "assigned" },
-  { id: 8, date: "2026-06-10", time: "11:30", customer: "Leon Pierce", phone: "017-6789012", service: "Hair Coloring", price: 80, assigned: ["Marcus B."], status: "assigned" },
-  { id: 9, date: "2026-06-10", time: "13:00", customer: "Omar Diaz", phone: "018-7890123", service: "Line-up / Design", price: 15, assigned: ["Carlos M."], status: "assigned" },
-  { id: 10, date: "2026-06-10", time: "14:30", customer: "Noah Baker", phone: "019-8901234", service: "Full Service", price: 50, assigned: ["Jordan T."], status: "assigned" },
-  { id: 11, date: "2026-06-10", time: "15:00", customer: "Caleb Stone", phone: "012-1112233", service: "Haircut", price: 20, assigned: ["Alex R."], status: "assigned" },
-  { id: 12, date: "2026-06-10", time: "15:30", customer: "Ethan Brooks", phone: "013-4445566", service: "Beard Trim", price: 10, assigned: ["Devon S."], status: "pending" },
-  { id: 13, date: "2026-06-10", time: "16:00", customer: "Mason Reed", phone: "014-7778899", service: "Skin Fade", price: 25, assigned: [], status: "pending" },
-  { id: 14, date: "2026-06-10", time: "16:30", customer: "Logan Hayes", phone: "015-0001122", service: "Haircut + Wash", price: 30, assigned: [], status: "pending" },
-  { id: 15, date: "2026-06-11", time: "10:00", customer: "Aiden Cruz", phone: "016-3334455", service: "Haircut", price: 20, assigned: ["Carlos M."], status: "assigned" },
+  { id: 1, date: addDays(-1), time: "10:00", customer: "Amir Hassan", phone: "013-9012345", service: "Full Service", price: 50, assigned: ["Jordan T.", "Alex R."], status: "completed" },
+  { id: 2, date: addDays(-1), time: "14:00", customer: "Farid Yusof", phone: "014-0123456", service: "Haircut", price: 20, assigned: ["Marcus B."], status: "completed" },
+  { id: 3, date: addDays(0), time: "09:00", customer: "Marcus Webb", phone: "012-3456789", service: "Skin Fade", price: 25, assigned: ["Jordan T."], status: "completed" },
+  { id: 4, date: addDays(0), time: "09:30", customer: "Darius King", phone: "013-2345678", service: "Beard Trim", price: 10, assigned: ["Alex R."], status: "completed" },
+  { id: 5, date: addDays(0), time: "10:00", customer: "Terrell Nash", phone: "014-3456789", service: "Haircut + Wash", price: 30, assigned: ["Jordan T."], status: "assigned" },
+  { id: 6, date: addDays(0), time: "10:30", customer: "Isaiah Cole", phone: "015-4567890", service: "Haircut", price: 20, assigned: ["Marcus B."], status: "assigned" },
+  { id: 7, date: addDays(0), time: "11:00", customer: "Quincy Adams", phone: "016-5678901", service: "Skin Fade", price: 25, assigned: ["Devon S."], status: "assigned" },
+  { id: 8, date: addDays(0), time: "11:30", customer: "Leon Pierce", phone: "017-6789012", service: "Hair Coloring", price: 80, assigned: ["Marcus B."], status: "assigned" },
+  { id: 9, date: addDays(0), time: "13:00", customer: "Omar Diaz", phone: "018-7890123", service: "Line-up / Design", price: 15, assigned: ["Carlos M."], status: "assigned" },
+  { id: 10, date: addDays(0), time: "14:30", customer: "Noah Baker", phone: "019-8901234", service: "Full Service", price: 50, assigned: ["Jordan T."], status: "assigned" },
+  { id: 11, date: addDays(0), time: "15:00", customer: "Caleb Stone", phone: "012-1112233", service: "Haircut", price: 20, assigned: ["Alex R."], status: "assigned" },
+  { id: 12, date: addDays(0), time: "15:30", customer: "Ethan Brooks", phone: "013-4445566", service: "Beard Trim", price: 10, assigned: ["Devon S."], status: "pending" },
+  { id: 13, date: addDays(0), time: "16:00", customer: "Mason Reed", phone: "014-7778899", service: "Skin Fade", price: 25, assigned: [], status: "pending" },
+  { id: 14, date: addDays(0), time: "16:30", customer: "Logan Hayes", phone: "015-0001122", service: "Haircut + Wash", price: 30, assigned: [], status: "pending" },
+  { id: 15, date: addDays(1), time: "10:00", customer: "Aiden Cruz", phone: "016-3334455", service: "Haircut", price: 20, assigned: ["Carlos M."], status: "assigned" },
 ];
 
-seedIfEmpty(
-  "services",
-  SERVICES,
-  "INSERT INTO services (id, name, price) VALUES (@id, @name, @price)",
-  s => s
-);
+await seedIfEmpty("services", SERVICES, ["id", "name", "price"], s => s);
 
-seedIfEmpty(
+await seedIfEmpty(
   "staff",
   STAFF,
-  `INSERT INTO staff (id, name, short, init, role, since, rating, reviews, revenue, appts, color, specialties, phone, email, active)
-   VALUES (@id, @name, @short, @init, @role, @since, @rating, @reviews, @revenue, @appts, @color, @specialties, @phone, @email, @active)`,
-  s => ({ ...s, specialties: JSON.stringify(s.specialties), active: s.active ? 1 : 0 })
+  ["id", "name", "short", "init", "role", "since", "rating", "reviews", "revenue", "appts", "color", "specialties", "phone", "email", "active"],
+  s => ({ ...s, specialties: JSON.stringify(s.specialties) })
 );
 
-seedIfEmpty(
+await seedIfEmpty(
   "appointments",
   APPOINTMENTS,
-  `INSERT INTO appointments (id, date, time, customer, phone, service, price, assigned, status)
-   VALUES (@id, @date, @time, @customer, @phone, @service, @price, @assigned, @status)`,
+  ["id", "date", "time", "customer", "phone", "service", "price", "assigned", "status"],
   a => ({ ...a, assigned: JSON.stringify(a.assigned) })
 );
 
-export default db;
+export default pool;
