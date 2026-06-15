@@ -47,6 +47,8 @@ await pool.query(`
   );
 `);
 
+await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS notes TEXT NOT NULL DEFAULT ''`);
+
 const seedIfEmpty = async (table, rows, columns, mapRow) => {
   const { rows: [{ count }] } = await pool.query(`SELECT COUNT(*) FROM ${table}`);
   if (Number(count) > 0) return;
@@ -112,8 +114,8 @@ await seedIfEmpty(
 await seedIfEmpty(
   "appointments",
   APPOINTMENTS,
-  ["id", "date", "time", "customer", "phone", "service", "price", "assigned", "status"],
-  a => ({ ...a, assigned: JSON.stringify(a.assigned) })
+  ["id", "date", "time", "customer", "phone", "service", "price", "assigned", "status", "notes"],
+  a => ({ ...a, assigned: JSON.stringify(a.assigned), notes: a.notes || "" })
 );
 
 export default pool;

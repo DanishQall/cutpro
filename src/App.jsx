@@ -500,7 +500,7 @@ const MiniStat = ({ icon, label, value }) => (
   </div>
 );
 const Pill = ({ children }) => <span style={{ border: `1px solid ${C.line}`, background: C.panelAlt, color: C.text, fontSize: 13, padding: "7px 14px", borderRadius: 4 }}>{children}</span>;
-const OutlineBtn = ({ children }) => <button style={{ background: C.card, border: `1px solid ${C.line}`, color: C.text, borderRadius: 4, padding: "11px 18px", fontFamily: body, fontSize: 14, cursor: "pointer" }}>{children}</button>;
+const OutlineBtn = ({ children, onClick, style }) => <button onClick={onClick} style={{ background: C.card, border: `1px solid ${C.line}`, color: C.text, borderRadius: 4, padding: "11px 18px", fontFamily: body, fontSize: 14, cursor: "pointer", ...style }}>{children}</button>;
 
 /* ============================ ADMIN: EARNINGS ============================ */
 function Earnings({ staff }) {
@@ -827,38 +827,89 @@ const Info = ({ label, value }) => (
 
 /* ============================ NEW APPOINTMENT MODAL ============================ */
 function NewApptModal({ services, staff, onClose, onSave }) {
-  const [f, setF] = useState({ customer: "", phone: "", service: services[0].name, time: nowTimeStr(), assigned: staff[0].short });
+  const [f, setF] = useState({ customer: "", phone: "", service: services[0].name, date: todayStr(), time: nowTimeStr(), assigned: [], notes: "" });
   const price = services.find(s => s.name === f.service)?.price || 0;
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+  const toggleAssigned = short => setF(p => ({
+    ...p,
+    assigned: p.assigned.includes(short) ? p.assigned.filter(x => x !== short) : [...p.assigned, short],
+  }));
   const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
+  const create = () => {
+    if (!f.customer) return;
+    onSave({ ...f, price, status: f.assigned.length > 0 ? "assigned" : "pending" });
+    onClose();
+  };
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
       <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
-        <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, marginBottom: 20, textTransform: "uppercase" }}>New Appointment</div>
-        <label style={lbl}>CUSTOMER NAME</label>
-        <input style={field} value={f.customer} onChange={e => set("customer", e.target.value)} placeholder="e.g. James Lee" />
-        <label style={{ ...lbl, marginTop: 14 }}>PHONE</label>
-        <input style={field} value={f.phone} onChange={e => set("phone", e.target.value)} placeholder="012-3456789" />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>New Appointment</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
+        </div>
+
+        <div style={{ display: "flex", gap: 14 }}>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>CUSTOMER NAME</label>
+            <input style={field} value={f.customer} onChange={e => set("customer", e.target.value)} placeholder="Full name" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>PHONE NUMBER</label>
+            <input style={field} value={f.phone} onChange={e => set("phone", e.target.value)} placeholder="01X-XXXXXXX" />
+          </div>
+        </div>
+
+        <label style={{ ...lbl, marginTop: 14 }}>SERVICE TYPE</label>
+        <select style={field} value={f.service} onChange={e => set("service", e.target.value)}>
+          {services.map(s => <option key={s.id}>{s.name} — RM{s.price}</option>)}
+        </select>
+
         <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
           <div style={{ flex: 1 }}>
-            <label style={lbl}>SERVICE</label>
-            <select style={field} value={f.service} onChange={e => set("service", e.target.value)}>
-              {services.map(s => <option key={s.id}>{s.name}</option>)}
-            </select>
+            <label style={lbl}>DATE</label>
+            <input type="date" style={field} value={f.date} onChange={e => set("date", e.target.value)} />
           </div>
-          <div style={{ width: 110 }}><label style={lbl}>TIME</label><input style={field} value={f.time} onChange={e => set("time", e.target.value)} /></div>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>TIME</label>
+            <input type="time" style={field} value={f.time} onChange={e => set("time", e.target.value)} />
+          </div>
         </div>
-        <label style={{ ...lbl, marginTop: 14 }}>ASSIGN TO</label>
-        <select style={field} value={f.assigned} onChange={e => set("assigned", e.target.value)}>
-          {staff.map(s => <option key={s.id}>{s.short}</option>)}
-        </select>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-          <span style={{ color: C.sub, fontSize: 14 }}>Price: <span style={{ color: C.gold, fontFamily: mono }}>RM {price}</span></span>
-          <div style={{ display: "flex", gap: 10 }}>
-            <OutlineBtn onClick={onClose}>Cancel</OutlineBtn>
-            <GoldBtn onClick={() => { if (f.customer) { onSave({ ...f, price }); onClose(); } }}>Create</GoldBtn>
-          </div>
+
+        <div style={{ marginTop: 14, background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub }}>SERVICE PRICE</span>
+          <span style={{ fontFamily: mono, fontWeight: 700, fontSize: 16, color: C.gold }}>RM {price}</span>
+        </div>
+
+        <label style={{ ...lbl, marginTop: 14 }}>ASSIGN BARBER(S)</label>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {staff.map(s => {
+            const selected = f.assigned.includes(s.short);
+            return (
+              <button
+                key={s.id}
+                onClick={() => toggleAssigned(s.short)}
+                style={{
+                  ...field,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  border: selected ? `1px solid ${C.gold}` : `1px solid ${C.line}`,
+                  background: selected ? "rgba(212,175,69,.12)" : C.panelAlt,
+                  color: selected ? C.gold : C.text,
+                }}
+              >
+                {s.short}
+              </button>
+            );
+          })}
+        </div>
+
+        <label style={{ ...lbl, marginTop: 14 }}>NOTES (OPTIONAL)</label>
+        <textarea style={{ ...field, minHeight: 70, resize: "vertical", fontFamily: body }} value={f.notes} onChange={e => set("notes", e.target.value)} placeholder="Any special instructions..." />
+
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Cancel</OutlineBtn>
+          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center" }}>Create Appointment</GoldBtn>
         </div>
       </div>
     </div>
@@ -914,9 +965,9 @@ export default function App() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        date: todayStr(), time: data.time, customer: data.customer,
+        date: data.date, time: data.time, customer: data.customer,
         phone: data.phone, service: data.service, price: data.price,
-        assigned: [data.assigned], status: "assigned",
+        assigned: data.assigned, status: data.status, notes: data.notes,
       }),
     })
       .then(r => r.json())

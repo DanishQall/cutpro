@@ -56,11 +56,11 @@ app.get("/api/appointments", async (req, res) => {
 });
 
 app.post("/api/appointments", async (req, res) => {
-  const { date, time, customer, phone, service, price, assigned, status } = req.body;
+  const { date, time, customer, phone, service, price, assigned, status, notes } = req.body;
   const { rows } = await pool.query(
-    `INSERT INTO appointments (date, time, customer, phone, service, price, assigned, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [date, time, customer, phone, service, price, JSON.stringify(assigned || []), status || "pending"]
+    `INSERT INTO appointments (date, time, customer, phone, service, price, assigned, status, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [date, time, customer, phone, service, price, JSON.stringify(assigned || []), status || "pending", notes || ""]
   );
   res.status(201).json(rows[0]);
 });
@@ -70,9 +70,9 @@ app.put("/api/appointments/:id", async (req, res) => {
   if (!existingRows[0]) return res.status(404).end();
   const next = { ...existingRows[0], ...req.body };
   const { rows } = await pool.query(
-    `UPDATE appointments SET date=$1, time=$2, customer=$3, phone=$4, service=$5, price=$6, assigned=$7, status=$8
-     WHERE id=$9 RETURNING *`,
-    [next.date, next.time, next.customer, next.phone, next.service, next.price, JSON.stringify(next.assigned), next.status, req.params.id]
+    `UPDATE appointments SET date=$1, time=$2, customer=$3, phone=$4, service=$5, price=$6, assigned=$7, status=$8, notes=$9
+     WHERE id=$10 RETURNING *`,
+    [next.date, next.time, next.customer, next.phone, next.service, next.price, JSON.stringify(next.assigned), next.status, next.notes || "", req.params.id]
   );
   res.json(rows[0]);
 });
