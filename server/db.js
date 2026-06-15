@@ -1,5 +1,6 @@
 import pg from "pg";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
@@ -44,6 +45,15 @@ await pool.query(`
     price INTEGER NOT NULL,
     assigned JSONB NOT NULL,
     status TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL,
+    staff_id INTEGER REFERENCES staff(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 `);
 
@@ -116,6 +126,18 @@ await seedIfEmpty(
   APPOINTMENTS,
   ["id", "date", "time", "customer", "phone", "service", "price", "assigned", "status", "notes"],
   a => ({ ...a, assigned: JSON.stringify(a.assigned), notes: a.notes || "" })
+);
+
+const USERS = [
+  { id: 1, username: "admin", password: "admin123", role: "admin", staff_id: null },
+  { id: 2, username: "jordan", password: "pass123", role: "staff", staff_id: 1 },
+];
+
+await seedIfEmpty(
+  "users",
+  USERS,
+  ["id", "username", "password_hash", "role", "staff_id"],
+  u => ({ id: u.id, username: u.username, password_hash: bcrypt.hashSync(u.password, 10), role: u.role, staff_id: u.staff_id })
 );
 
 export default pool;

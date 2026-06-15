@@ -27,6 +27,11 @@ const C = {
   red: "#f87171",
 };
 const API_BASE = import.meta.env.VITE_API_URL || "";
+const api = (path, opts = {}) => fetch(`${API_BASE}${path}`, {
+  ...opts,
+  credentials: "include",
+  headers: { ...(opts.body ? { "Content-Type": "application/json" } : {}), ...(opts.headers || {}) },
+});
 const mono = "'JetBrains Mono','SF Mono',ui-monospace,monospace";
 const display = "'Oswald','Arial Narrow',sans-serif";
 const body = "'Inter',system-ui,sans-serif";
@@ -93,6 +98,7 @@ const Badge = ({ status }) => {
   const map = {
     completed: { c: C.green, bg: "rgba(74,222,128,.12)", t: "✓ COMPLETED" },
     assigned: { c: C.gold, bg: "rgba(212,175,69,.12)", t: "⏱ ASSIGNED" },
+    in_progress: { c: "#6f9bff", bg: "rgba(111,155,255,.12)", t: "⏱ IN PROGRESS" },
     pending: { c: C.red, bg: "rgba(248,113,113,.12)", t: "PENDING" },
     done: { c: C.green, bg: "rgba(74,222,128,.12)", t: "✓ Done" },
   };
@@ -180,11 +186,15 @@ function Login({ onLogin }) {
   const [p, setP] = useState("");
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const submit = () => {
-    if (u === "admin" && p === "admin123") return onLogin("admin");
-    if (u === "jordan" && p === "pass123") return onLogin("staff");
-    setErr("Username or password is incorrect.");
+    if (!u || !p) return setErr("Username and password are required.");
+    setBusy(true);
+    setErr("");
+    onLogin(u, p)
+      .catch(e => setErr(e.message || "Username or password is incorrect."))
+      .finally(() => setBusy(false));
   };
   const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "13px 15px", color: C.text, fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1.5, color: C.sub, marginBottom: 8, display: "block" };
@@ -212,7 +222,7 @@ function Login({ onLogin }) {
             </button>
           </div>
           {err && <div style={{ color: C.red, fontSize: 13, marginTop: 12 }}>{err}</div>}
-          <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "13px" }}>Sign In</GoldBtn>
+          <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "13px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
         </Card>
 
         <Card style={{ marginTop: 18, padding: 20 }}>
@@ -316,7 +326,7 @@ function Appointments({ appts, setAppts, onNew }) {
     (a.customer.toLowerCase().includes(q.toLowerCase()) || a.phone.includes(q)));
   const del = id => {
     setAppts(p => p.filter(a => a.id !== id));
-    fetch(`${API_BASE}/api/appointments/${id}`, { method: "DELETE" });
+    api(`/api/appointments/${id}`, { method: "DELETE" });
   };
 
   return (
@@ -441,9 +451,11 @@ function Schedule({ appts }) {
 }
 
 /* ============================ ADMIN: STAFF ============================ */
-function StaffPage({ staff, onAdd }) {
-  const [sel, setSel] = useState(staff[0]);
+function StaffPage({ staff, onAdd, onUpdateUsername, onResetPassword, onToggleActive, onDelete }) {
+  const [selId, setSelId] = useState(staff[0]?.id);
   const [modal, setModal] = useState(false);
+  const [manageModal, setManageModal] = useState(false);
+  const sel = staff.find(s => s.id === selId) || staff[0];
   return (
     <Page>
       <Row between>
@@ -455,7 +467,7 @@ function StaffPage({ staff, onAdd }) {
           {staff.map(s => {
             const on = sel.id === s.id;
             return (
-              <button key={s.id} onClick={() => setSel(s)} style={{
+              <button key={s.id} onClick={() => setSelId(s.id)} style={{
                 display: "flex", alignItems: "center", gap: 14, padding: 16, cursor: "pointer", textAlign: "left",
                 background: C.card, border: `1px solid ${on ? C.gold : C.line}`, borderRadius: 4,
               }}>
@@ -500,25 +512,132 @@ function StaffPage({ staff, onAdd }) {
             </div>
           </div>
           <div style={{ borderTop: `1px solid ${C.line}`, marginTop: 24, paddingTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <GoldBtn>Edit Profile</GoldBtn>
+            <GoldBtn onClick={() => setManageModal(true)}>Manage Account</GoldBtn>
             <OutlineBtn>View Schedule</OutlineBtn>
             <OutlineBtn>Pay History</OutlineBtn>
           </div>
         </Card>
       </div>
-      {modal && <AddStaffModal onClose={() => setModal(false)} onSave={data => onAdd(data).then(setSel)} />}
+      {modal && <AddStaffModal onClose={() => setModal(false)} onSave={data => onAdd(data).then(created => { setSelId(created.id); return created; })} />}
+      {manageModal && (
+        <ManageAccountModal
+          staffMember={sel}
+          onClose={() => setManageModal(false)}
+          onUpdateUsername={onUpdateUsername}
+          onResetPassword={onResetPassword}
+          onToggleActive={onToggleActive}
+          onDelete={id => onDelete(id).then(() => { setSelId(staff.find(s => s.id !== id)?.id); setManageModal(false); })}
+        />
+      )}
     </Page>
   );
 }
 
+function ManageAccountModal({ staffMember, onClose, onUpdateUsername, onResetPassword, onToggleActive, onDelete }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
+
+  const saveUsername = () => {
+    if (!username.trim()) return setErr("Username cannot be empty.");
+    setErr(""); setMsg(""); setBusy(true);
+    onUpdateUsername(staffMember.id, username.trim())
+      .then(() => setMsg("Username updated."))
+      .catch(e => setErr(e.message))
+      .finally(() => setBusy(false));
+  };
+  const savePassword = () => {
+    if (password.length < 8) return setErr("Password must be at least 8 characters.");
+    setErr(""); setMsg(""); setBusy(true);
+    onResetPassword(staffMember.id, password)
+      .then(() => { setMsg("Password reset."); setPassword(""); })
+      .catch(e => setErr(e.message))
+      .finally(() => setBusy(false));
+  };
+  const toggleActive = () => {
+    setErr(""); setMsg(""); setBusy(true);
+    onToggleActive(staffMember.id, !staffMember.active)
+      .then(() => setMsg(staffMember.active ? "Account disabled." : "Account enabled."))
+      .catch(e => setErr(e.message))
+      .finally(() => setBusy(false));
+  };
+  const remove = () => {
+    if (!window.confirm(`Delete ${staffMember.name}'s account? This cannot be undone.`)) return;
+    setErr(""); setBusy(true);
+    onDelete(staffMember.id).catch(e => { setErr(e.message); setBusy(false); });
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Manage Account — {staffMember.name}</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
+        </div>
+
+        <label style={lbl}>UPDATE USERNAME</label>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input style={field} value={username} onChange={e => setUsername(e.target.value)} placeholder="New username" autoCapitalize="none" autoCorrect="off" />
+          <OutlineBtn onClick={saveUsername}>Save</OutlineBtn>
+        </div>
+
+        <label style={{ ...lbl, marginTop: 16 }}>RESET PASSWORD</label>
+        <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ position: "relative", flex: 1 }}>
+            <input style={field} type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" />
+            <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <OutlineBtn onClick={savePassword}>Save</OutlineBtn>
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <label style={lbl}>ACCOUNT STATUS</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ color: staffMember.active ? C.green : C.faint, fontSize: 14 }}>{staffMember.active ? "Active" : "Disabled"}</span>
+            <OutlineBtn onClick={toggleActive}>{staffMember.active ? "Disable Account" : "Enable Account"}</OutlineBtn>
+          </div>
+        </div>
+
+        {err && <div style={{ color: C.red, fontSize: 13, marginTop: 14 }}>{err}</div>}
+        {msg && !err && <div style={{ color: C.green, fontSize: 13, marginTop: 14 }}>{msg}</div>}
+
+        <div style={{ display: "flex", gap: 10, marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 18 }}>
+          <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Close</OutlineBtn>
+          <button onClick={remove} disabled={busy} style={{ flex: 1, justifyContent: "center", textAlign: "center", display: "flex", alignItems: "center", gap: 8, background: "rgba(248,113,113,.12)", border: `1px solid ${C.red}`, color: C.red, borderRadius: 4, padding: "11px 18px", fontFamily: body, fontSize: 14, cursor: "pointer" }}>
+            <Trash2 size={16} /> Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AddStaffModal({ onClose, onSave }) {
-  const [f, setF] = useState({ name: "", role: ROLES[1], phone: "", email: "", specialties: "" });
+  const [f, setF] = useState({ name: "", role: ROLES[1], username: "", password: "", confirmPassword: "", phone: "", email: "", specialties: "" });
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
   const create = () => {
-    if (!f.name) return;
+    if (!f.name) return setErr("Full name is required.");
+    if (!f.username.trim()) return setErr("Username is required.");
+    if (!f.password) return setErr("Password is required.");
+    if (f.password.length < 8) return setErr("Password must be at least 8 characters.");
+    if (f.confirmPassword !== f.password) return setErr("Passwords do not match.");
+
     const now = new Date();
+    setErr("");
+    setBusy(true);
     onSave({
       name: f.name,
       short: deriveShort(f.name),
@@ -534,8 +653,11 @@ function AddStaffModal({ onClose, onSave }) {
       phone: f.phone,
       email: f.email,
       active: true,
-    });
-    onClose();
+      username: f.username.trim(),
+      password: f.password,
+    })
+      .then(() => onClose())
+      .catch(e => { setErr(e.message || "Could not create staff account."); setBusy(false); });
   };
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
@@ -553,6 +675,25 @@ function AddStaffModal({ onClose, onSave }) {
           {ROLES.map(r => <option key={r}>{r}</option>)}
         </select>
 
+        <label style={{ ...lbl, marginTop: 14 }}>USERNAME</label>
+        <input style={field} value={f.username} onChange={e => set("username", e.target.value)} placeholder="e.g. james.lee" autoCapitalize="none" autoCorrect="off" />
+
+        <label style={{ ...lbl, marginTop: 14 }}>PASSWORD</label>
+        <div style={{ position: "relative" }}>
+          <input style={field} type={showPw ? "text" : "password"} value={f.password} onChange={e => set("password", e.target.value)} placeholder="Min. 8 characters" />
+          <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+            {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+
+        <label style={{ ...lbl, marginTop: 14 }}>CONFIRM PASSWORD</label>
+        <div style={{ position: "relative" }}>
+          <input style={field} type={showConfirmPw ? "text" : "password"} value={f.confirmPassword} onChange={e => set("confirmPassword", e.target.value)} placeholder="Re-enter password" />
+          <button onClick={() => setShowConfirmPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+            {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+
         <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
           <div style={{ flex: 1 }}>
             <label style={lbl}>PHONE</label>
@@ -567,9 +708,11 @@ function AddStaffModal({ onClose, onSave }) {
         <label style={{ ...lbl, marginTop: 14 }}>SPECIALTIES (COMMA-SEPARATED)</label>
         <input style={field} value={f.specialties} onChange={e => set("specialties", e.target.value)} placeholder="Skin Fade, Beard Trim" />
 
+        {err && <div style={{ color: C.red, fontSize: 13, marginTop: 14 }}>{err}</div>}
+
         <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
           <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Cancel</OutlineBtn>
-          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center" }}>Create Account</GoldBtn>
+          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center", opacity: busy ? 0.6 : 1 }}>{busy ? "Creating…" : "Create Account"}</GoldBtn>
         </div>
       </div>
     </div>
@@ -701,15 +844,14 @@ function Pricing({ services, setServices }) {
   const avg = Math.round(services.reduce((s, x) => s + x.price, 0) / services.length);
   const del = id => {
     setServices(p => p.filter(s => s.id !== id));
-    fetch(`${API_BASE}/api/services/${id}`, { method: "DELETE" });
+    api(`/api/services/${id}`, { method: "DELETE" });
   };
   const add = () => {
     const name = prompt("Service name?");
     if (!name) return;
     const price = parseInt(prompt("Price (RM)?") || "0", 10);
-    fetch(`${API_BASE}/api/services`, {
+    api("/api/services", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, price }),
     })
       .then(r => r.json())
@@ -750,12 +892,11 @@ function StaffDashboard({ appts, setAppts, user }) {
   const mine = appts.filter(a => a.assigned.includes(user.short) && a.date === todayStr());
   const done = mine.filter(a => a.status === "completed");
   const upcoming = mine.filter(a => a.status !== "completed");
-  const markDone = id => {
-    setAppts(p => p.map(a => a.id === id ? { ...a, status: "completed" } : a));
-    fetch(`${API_BASE}/api/appointments/${id}`, {
+  const setStatus = (id, status) => {
+    setAppts(p => p.map(a => a.id === id ? { ...a, status } : a));
+    api(`/api/appointments/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "completed" }),
+      body: JSON.stringify({ status }),
     });
   };
   return (
@@ -777,7 +918,12 @@ function StaffDashboard({ appts, setAppts, user }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontWeight: 700, color: C.text }}>{a.customer}</span><Badge status={a.status} /></div>
               <div style={{ color: C.sub, fontSize: 13, marginTop: 4 }}>{a.service} · RM {a.price}</div>
             </div>
-            <GoldBtn onClick={() => markDone(a.id)}><Check size={16} /> Mark Done</GoldBtn>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {a.status !== "in_progress" && (
+                <OutlineBtn onClick={() => setStatus(a.id, "in_progress")}><Clock size={16} /> Mark as In Progress</OutlineBtn>
+              )}
+              <GoldBtn onClick={() => setStatus(a.id, "completed")}><Check size={16} /> Mark as Completed</GoldBtn>
+            </div>
           </Card>
         ))}
         {upcoming.length === 0 && <Card><span style={{ color: C.sub }}>All done for today. Nice work.</span></Card>}
@@ -861,12 +1007,13 @@ function MySchedule({ appts, user }) {
 }
 
 /* ============================ STAFF: PROFILE ============================ */
-function Profile({ appts, user, staff }) {
+function Profile({ appts, user, staff, onUpdate, onChangePassword }) {
   const mine = appts.filter(a => a.assigned.includes(user.short));
   const completed = mine.filter(a => a.status === "completed");
   const todayDone = mine.filter(a => a.status === "completed" && a.date === todayStr());
   const contribution = todayDone.reduce((s, a) => s + a.price, 0);
   const me = staff.find(s => s.short === user.short) || staff[0];
+  const [modal, setModal] = useState(false);
   return (
     <Page>
       <Eyebrow>STAFF · MY PROFILE</Eyebrow><H1>Profile</H1>
@@ -876,11 +1023,11 @@ function Profile({ appts, user, staff }) {
             <div style={{ width: 80, height: 80, borderRadius: 4, background: me.color + "22", color: me.color, display: "grid", placeItems: "center", fontFamily: mono, fontSize: 22 }}>{me.init}</div>
             <div>
               <div style={{ fontFamily: display, fontWeight: 700, fontSize: 28, color: C.text, textTransform: "uppercase" }}>{user.name}</div>
-              <div style={{ color: C.sub, fontSize: 14, marginBottom: 12 }}>Barber · Since {me.since} · Staff ID #{me.id}</div>
+              <div style={{ color: C.sub, fontSize: 14, marginBottom: 12 }}>{me.role} · Since {me.since} · Staff ID #{me.id}</div>
               <div style={{ display: "flex", gap: 10 }}>{me.specialties.map(s => <Pill key={s}>{s}</Pill>)}</div>
             </div>
           </div>
-          <OutlineBtn>Edit Profile</OutlineBtn>
+          <OutlineBtn onClick={() => setModal(true)}>Edit Profile</OutlineBtn>
         </Row>
       </Card>
       <Grid4 style={{ marginTop: 18 }}>
@@ -892,15 +1039,87 @@ function Profile({ appts, user, staff }) {
       <Card style={{ marginTop: 18 }}>
         <Eyebrow>ACCOUNT INFO</Eyebrow>
         <div className="info-grid">
-          <Info label="USERNAME" value="jordan" />
-          <Info label="ROLE" value="Staff / Barber" />
+          <Info label="USERNAME" value={user.username} />
+          <Info label="ROLE" value={`Staff / ${me.role}`} />
           <Info label="PHONE" value={me.phone} />
           <Info label="EMAIL" value={me.email} />
-          <Info label="STATUS" value="Active" />
+          <Info label="STATUS" value={me.active ? "Active" : "Disabled"} />
           <Info label="HIRE DATE" value={me.since} />
         </div>
       </Card>
+      {modal && <EditProfileModal staffMember={me} onClose={() => setModal(false)} onUpdate={onUpdate} onChangePassword={onChangePassword} />}
     </Page>
+  );
+}
+
+function EditProfileModal({ staffMember, onClose, onUpdate, onChangePassword }) {
+  const [phone, setPhone] = useState(staffMember.phone);
+  const [email, setEmail] = useState(staffMember.email);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
+
+  const saveContact = () => {
+    setErr(""); setMsg(""); setBusy(true);
+    onUpdate(staffMember.id, { phone, email })
+      .then(() => setMsg("Profile updated."))
+      .catch(e => setErr(e.message))
+      .finally(() => setBusy(false));
+  };
+  const savePassword = () => {
+    if (newPassword.length < 8) return setErr("New password must be at least 8 characters.");
+    if (newPassword !== confirmPassword) return setErr("Passwords do not match.");
+    setErr(""); setMsg(""); setBusy(true);
+    onChangePassword(currentPassword, newPassword)
+      .then(() => { setMsg("Password changed."); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); })
+      .catch(e => setErr(e.message))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Edit Profile</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
+        </div>
+
+        <div style={{ display: "flex", gap: 14 }}>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>PHONE</label>
+            <input style={field} value={phone} onChange={e => setPhone(e.target.value)} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>EMAIL</label>
+            <input style={field} value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+        </div>
+        <GoldBtn onClick={saveContact} style={{ marginTop: 14, opacity: busy ? 0.6 : 1 }}>Save Contact Info</GoldBtn>
+
+        <div style={{ borderTop: `1px solid ${C.line}`, marginTop: 22, paddingTop: 18 }}>
+          <Eyebrow>CHANGE PASSWORD</Eyebrow>
+          <label style={lbl}>CURRENT PASSWORD</label>
+          <input style={field} type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+          <label style={{ ...lbl, marginTop: 14 }}>NEW PASSWORD</label>
+          <input style={field} type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 8 characters" />
+          <label style={{ ...lbl, marginTop: 14 }}>CONFIRM NEW PASSWORD</label>
+          <input style={field} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+          <GoldBtn onClick={savePassword} style={{ marginTop: 14, opacity: busy ? 0.6 : 1 }}>Change Password</GoldBtn>
+        </div>
+
+        {err && <div style={{ color: C.red, fontSize: 13, marginTop: 14 }}>{err}</div>}
+        {msg && !err && <div style={{ color: C.green, fontSize: 13, marginTop: 14 }}>{msg}</div>}
+
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Close</OutlineBtn>
+        </div>
+      </div>
+    </div>
   );
 }
 const Info = ({ label, value }) => (
@@ -1018,7 +1237,8 @@ const Td = ({ children, bold, sub, gold, mono: m }) => (
 
 /* ============================ ROOT ============================ */
 export default function App() {
-  const [role, setRole] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [page, setPage] = useState("dashboard");
   const [appts, setAppts] = useState([]);
   const [services, setServices] = useState([]);
@@ -1027,25 +1247,48 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
+  const role = authUser?.role || null;
+
   useEffect(() => {
-    Promise.all([
-      fetch(`${API_BASE}/api/appointments`).then(r => r.json()).then(setAppts),
-      fetch(`${API_BASE}/api/services`).then(r => r.json()).then(setServices),
-      fetch(`${API_BASE}/api/staff`).then(r => r.json()).then(setStaff),
-    ]).then(() => setLoaded(true));
+    api("/api/auth/me").then(r => r.ok ? r.json() : null).then(me => {
+      if (me) setAuthUser(me);
+      setAuthChecked(true);
+    });
   }, []);
 
-  const user = role === "admin"
-    ? { name: "Admin", init: "AD", short: "Admin" }
-    : { name: "Jordan T.", init: "JO", short: "Jordan T." };
+  useEffect(() => {
+    if (!role) return;
+    Promise.all([
+      api("/api/appointments").then(r => r.json()).then(setAppts),
+      api("/api/services").then(r => r.json()).then(setServices),
+      api("/api/staff").then(r => r.json()).then(setStaff),
+    ]).then(() => setLoaded(true));
+  }, [role]);
 
-  const login = r => { setRole(r); setPage(r === "admin" ? "dashboard" : "myDashboard"); };
-  const logout = () => { setRole(null); };
+  const user = authUser
+    ? (authUser.staff
+      ? { name: authUser.staff.name, init: authUser.staff.init, short: authUser.staff.short, username: authUser.username, role: authUser.role, staffId: authUser.staff.id }
+      : { name: "Admin", init: "AD", short: "Admin", username: authUser.username, role: authUser.role, staffId: null })
+    : null;
+
+  const login = async (username, password) => {
+    const r = await api("/api/auth/login", { method: "POST", body: JSON.stringify({ username, password }) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Login failed.");
+    setAuthUser(data);
+    setPage(data.role === "admin" ? "dashboard" : "myDashboard");
+  };
+  const logout = () => {
+    api("/api/auth/logout", { method: "POST" }).then(() => {
+      setAuthUser(null);
+      setLoaded(false);
+      setAppts([]); setServices([]); setStaff([]);
+    });
+  };
 
   const addAppt = data => {
-    fetch(`${API_BASE}/api/appointments`, {
+    api("/api/appointments", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         date: data.date, time: data.time, customer: data.customer,
         phone: data.phone, service: data.service, price: data.price,
@@ -1056,13 +1299,55 @@ export default function App() {
       .then(created => setAppts(p => [...p, created]));
   };
 
-  const addStaff = data => fetch(`${API_BASE}/api/staff`, {
+  const addStaff = data => api("/api/staff", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
-    .then(r => r.json())
-    .then(created => { setStaff(p => [...p, created]); return created; });
+    .then(async r => {
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.error || "Could not create staff account.");
+      setStaff(p => [...p, body]);
+      return body;
+    });
+
+  const updateStaff = (id, data) => api(`/api/staff/${id}`, { method: "PUT", body: JSON.stringify(data) })
+    .then(async r => {
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.error || "Update failed.");
+      setStaff(p => p.map(s => s.id === id ? body : s));
+      return body;
+    });
+
+  const updateUsername = (id, username) => api(`/api/staff/${id}/username`, { method: "PUT", body: JSON.stringify({ username }) })
+    .then(async r => {
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.error || "Update failed.");
+      return body;
+    });
+
+  const resetStaffPassword = (id, password) => api(`/api/staff/${id}/reset-password`, { method: "PUT", body: JSON.stringify({ password }) })
+    .then(async r => {
+      if (!r.ok) { const body = await r.json(); throw new Error(body.error || "Reset failed."); }
+    });
+
+  const deleteStaff = id => api(`/api/staff/${id}`, { method: "DELETE" })
+    .then(r => {
+      if (!r.ok) throw new Error("Delete failed.");
+      setStaff(p => p.filter(s => s.id !== id));
+    });
+
+  const changePassword = (currentPassword, newPassword) => api("/api/auth/password", { method: "PUT", body: JSON.stringify({ currentPassword, newPassword }) })
+    .then(async r => {
+      if (!r.ok) { const body = await r.json(); throw new Error(body.error || "Change failed."); }
+    });
+
+  if (!authChecked) return (
+    <Shell>
+      <div style={{ minHeight: "100%", display: "grid", placeItems: "center", color: C.sub, fontFamily: mono, fontSize: 13, letterSpacing: 1 }}>
+        LOADING…
+      </div>
+    </Shell>
+  );
 
   if (!role) return <Shell><Login onLogin={login} /></Shell>;
 
@@ -1078,13 +1363,13 @@ export default function App() {
     dashboard: <AdminDashboard appts={appts} onNew={() => setModal(true)} />,
     appointments: <Appointments appts={appts} setAppts={setAppts} onNew={() => setModal(true)} />,
     schedule: <Schedule appts={appts} />,
-    staff: <StaffPage staff={staff} onAdd={addStaff} />,
+    staff: <StaffPage staff={staff} onAdd={addStaff} onUpdateUsername={updateUsername} onResetPassword={resetStaffPassword} onToggleActive={(id, active) => updateStaff(id, { active })} onDelete={deleteStaff} />,
     earnings: <Earnings staff={staff} />,
     analytics: <Analytics />,
     pricing: <Pricing services={services} setServices={setServices} />,
     myDashboard: <StaffDashboard appts={appts} setAppts={setAppts} user={user} />,
     mySchedule: <MySchedule appts={appts} user={user} />,
-    profile: <Profile appts={appts} user={user} staff={staff} />,
+    profile: <Profile appts={appts} user={user} staff={staff} onUpdate={updateStaff} onChangePassword={changePassword} />,
   }[page];
 
   return (
