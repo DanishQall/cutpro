@@ -42,6 +42,18 @@ const todayStr = () => toDateStr(new Date());
 const nowTimeStr = () => { const d = new Date(); return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
 const addDays = (d, n) => { const copy = new Date(d); copy.setDate(copy.getDate() + n); return copy; };
 
+/* ============================ STAFF HELPERS ============================ */
+const STAFF_COLORS = ["#d4af45", "#6f9bff", "#b27dff", "#34d399", "#f87171", "#8a8a93", "#fb923c", "#22d3ee"];
+const ROLES = ["Apprentice", "Barber", "Senior Barber", "Master Barber"];
+const deriveShort = name => {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
+};
+const deriveInit = name => {
+  const parts = name.trim().split(/\s+/);
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+};
+
 /* ============================ MOCK DATA ============================ */
 const weeklyRevenue = [
   { day: "Mon", v: 420 }, { day: "Tue", v: 390 }, { day: "Wed", v: 560 },
@@ -429,11 +441,15 @@ function Schedule({ appts }) {
 }
 
 /* ============================ ADMIN: STAFF ============================ */
-function StaffPage({ staff }) {
+function StaffPage({ staff, onAdd }) {
   const [sel, setSel] = useState(staff[0]);
+  const [modal, setModal] = useState(false);
   return (
     <Page>
-      <Eyebrow>TEAM MANAGEMENT</Eyebrow><H1>Staff</H1>
+      <Row between>
+        <div><Eyebrow>TEAM MANAGEMENT</Eyebrow><H1>Staff</H1></div>
+        <GoldBtn onClick={() => setModal(true)}><UserPlus size={16} /> Add Staff</GoldBtn>
+      </Row>
       <div className="staff-layout">
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {staff.map(s => {
@@ -490,7 +506,73 @@ function StaffPage({ staff }) {
           </div>
         </Card>
       </div>
+      {modal && <AddStaffModal onClose={() => setModal(false)} onSave={data => onAdd(data).then(setSel)} />}
     </Page>
+  );
+}
+
+function AddStaffModal({ onClose, onSave }) {
+  const [f, setF] = useState({ name: "", role: ROLES[1], phone: "", email: "", specialties: "" });
+  const set = (k, v) => setF(p => ({ ...p, [k]: v }));
+  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
+  const create = () => {
+    if (!f.name) return;
+    const now = new Date();
+    onSave({
+      name: f.name,
+      short: deriveShort(f.name),
+      init: deriveInit(f.name),
+      role: f.role,
+      since: `${MONTHS_SHORT[now.getMonth()]} ${now.getFullYear()}`,
+      rating: 0,
+      reviews: 0,
+      revenue: 0,
+      appts: 0,
+      color: STAFF_COLORS[Math.floor(Math.random() * STAFF_COLORS.length)],
+      specialties: f.specialties.split(",").map(s => s.trim()).filter(Boolean),
+      phone: f.phone,
+      email: f.email,
+      active: true,
+    });
+    onClose();
+  };
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Add Staff</div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
+        </div>
+
+        <label style={lbl}>FULL NAME</label>
+        <input style={field} value={f.name} onChange={e => set("name", e.target.value)} placeholder="e.g. James Lee" />
+
+        <label style={{ ...lbl, marginTop: 14 }}>ROLE</label>
+        <select style={field} value={f.role} onChange={e => set("role", e.target.value)}>
+          {ROLES.map(r => <option key={r}>{r}</option>)}
+        </select>
+
+        <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>PHONE</label>
+            <input style={field} value={f.phone} onChange={e => set("phone", e.target.value)} placeholder="(555) 012-3456" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={lbl}>EMAIL</label>
+            <input style={field} value={f.email} onChange={e => set("email", e.target.value)} placeholder="name@cutpro.com" />
+          </div>
+        </div>
+
+        <label style={{ ...lbl, marginTop: 14 }}>SPECIALTIES (COMMA-SEPARATED)</label>
+        <input style={field} value={f.specialties} onChange={e => set("specialties", e.target.value)} placeholder="Skin Fade, Beard Trim" />
+
+        <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+          <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Cancel</OutlineBtn>
+          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center" }}>Create Account</GoldBtn>
+        </div>
+      </div>
+    </div>
   );
 }
 const MiniStat = ({ icon, label, value }) => (
@@ -974,6 +1056,14 @@ export default function App() {
       .then(created => setAppts(p => [...p, created]));
   };
 
+  const addStaff = data => fetch(`${API_BASE}/api/staff`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+    .then(r => r.json())
+    .then(created => { setStaff(p => [...p, created]); return created; });
+
   if (!role) return <Shell><Login onLogin={login} /></Shell>;
 
   if (!loaded) return (
@@ -988,7 +1078,7 @@ export default function App() {
     dashboard: <AdminDashboard appts={appts} onNew={() => setModal(true)} />,
     appointments: <Appointments appts={appts} setAppts={setAppts} onNew={() => setModal(true)} />,
     schedule: <Schedule appts={appts} />,
-    staff: <StaffPage staff={staff} />,
+    staff: <StaffPage staff={staff} onAdd={addStaff} />,
     earnings: <Earnings staff={staff} />,
     analytics: <Analytics />,
     pricing: <Pricing services={services} setServices={setServices} />,

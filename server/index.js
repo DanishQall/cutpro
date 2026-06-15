@@ -37,6 +37,16 @@ app.get("/api/staff", async (req, res) => {
   res.json(rows);
 });
 
+app.post("/api/staff", async (req, res) => {
+  const { name, short, init, role, since, rating, reviews, revenue, appts, color, specialties, phone, email, active } = req.body;
+  const { rows } = await pool.query(
+    `INSERT INTO staff (name, short, init, role, since, rating, reviews, revenue, appts, color, specialties, phone, email, active)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+    [name, short, init, role, since, rating, reviews, revenue, appts, color, JSON.stringify(specialties || []), phone, email, active]
+  );
+  res.status(201).json(rows[0]);
+});
+
 app.put("/api/staff/:id", async (req, res) => {
   const { rows: existingRows } = await pool.query("SELECT * FROM staff WHERE id = $1", [req.params.id]);
   if (!existingRows[0]) return res.status(404).end();
