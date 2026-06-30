@@ -266,13 +266,13 @@ function Login({ onLogin }) {
         <div className="login-right">
           <div style={{
             width: "100%", maxWidth: 380,
-            background: "linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.04))",
-            backdropFilter: "blur(24px) saturate(160%)",
-            WebkitBackdropFilter: "blur(24px) saturate(160%)",
-            border: "1px solid rgba(255,255,255,.35)",
+            background: "linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.07))",
+            backdropFilter: "blur(40px) saturate(110%)",
+            WebkitBackdropFilter: "blur(40px) saturate(110%)",
+            border: "1px solid rgba(255,255,255,.5)",
             borderRadius: 20,
             padding: "34px 32px",
-            boxShadow: "0 8px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.06)",
+            boxShadow: "0 8px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 0 0 1px rgba(255,255,255,.1)",
             boxSizing: "border-box",
           }}>
             <div style={{ fontFamily: display, fontWeight: 700, fontSize: 30, color: "#fff", marginBottom: 24, textTransform: "uppercase" }}>Sign In</div>
