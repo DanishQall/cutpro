@@ -170,6 +170,30 @@
   display: none;
 }
 
+/* ============================ MODALS ============================ */
+
+.modal-overlay {
+  padding: 20px;
+}
+.modal-box {
+  padding: 26px;
+}
+.modal-2col {
+  display: flex;
+}
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  .modal-box {
+    padding: 18px;
+  }
+  .modal-2col {
+    flex-direction: column;
+    gap: 14px !important;
+  }
+}
+
 @media (max-width: 1024px) {
   .mobile-topbar {
     display: flex;

@@ -573,22 +573,22 @@ function ManageAccountModal({ staffMember, onClose, onUpdateUsername, onResetPas
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+    <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Manage Account — {staffMember.name}</div>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Manage Account — {staffMember.name}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
         </div>
 
         <label style={lbl}>UPDATE USERNAME</label>
         <div style={{ display: "flex", gap: 10 }}>
-          <input style={field} value={username} onChange={e => setUsername(e.target.value)} placeholder="New username" autoCapitalize="none" autoCorrect="off" />
+          <input style={{ ...field, flex: 1, minWidth: 0 }} value={username} onChange={e => setUsername(e.target.value)} placeholder="New username" autoCapitalize="none" autoCorrect="off" />
           <OutlineBtn onClick={saveUsername}>Save</OutlineBtn>
         </div>
 
         <label style={{ ...lbl, marginTop: 16 }}>RESET PASSWORD</label>
         <div style={{ display: "flex", gap: 10 }}>
-          <div style={{ position: "relative", flex: 1 }}>
+          <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
             <input style={field} type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" />
             <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
               {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -660,10 +660,10 @@ function AddStaffModal({ onClose, onSave }) {
       .catch(e => { setErr(e.message || "Could not create staff account."); setBusy(false); });
   };
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+    <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Add Staff</div>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Add Staff</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
         </div>
 
@@ -694,12 +694,12 @@ function AddStaffModal({ onClose, onSave }) {
           </button>
         </div>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
-          <div style={{ flex: 1 }}>
+        <div className="modal-2col" style={{ display: "flex", gap: 14, marginTop: 14 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>PHONE</label>
             <input style={field} value={f.phone} onChange={e => set("phone", e.target.value)} placeholder="(555) 012-3456" />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>EMAIL</label>
             <input style={field} value={f.email} onChange={e => set("email", e.target.value)} placeholder="name@cutpro.com" />
           </div>
@@ -887,7 +887,7 @@ function Pricing({ services, setServices }) {
 }
 
 /* ============================ STAFF: DASHBOARD ============================ */
-function StaffDashboard({ appts, setAppts, user }) {
+function StaffDashboard({ appts, setAppts, user, onNew }) {
   const now = new Date();
   const mine = appts.filter(a => a.assigned.includes(user.short) && a.date === todayStr());
   const done = mine.filter(a => a.status === "completed");
@@ -901,8 +901,10 @@ function StaffDashboard({ appts, setAppts, user }) {
   };
   return (
     <Page>
-      <Eyebrow>{WEEKDAYS[now.getDay()].toUpperCase()} — {MONTHS[now.getMonth()].toUpperCase()} {now.getDate()}, {now.getFullYear()}</Eyebrow>
-      <H1>Good Day, {user.name.split(" ")[0]}</H1>
+      <Row between>
+        <div><Eyebrow>{WEEKDAYS[now.getDay()].toUpperCase()} — {MONTHS[now.getMonth()].toUpperCase()} {now.getDate()}, {now.getFullYear()}</Eyebrow><H1>Good Day, {user.name.split(" ")[0]}</H1></div>
+        <GoldBtn onClick={onNew}><Plus size={16} /> Add Walk-In</GoldBtn>
+      </Row>
       <div className="grid-3" style={{ gap: 18, marginTop: 18 }}>
         <Stat label="Total Today" value={mine.length} sub="appointments assigned" />
         <Stat label="Completed" value={<span style={{ color: C.gold }}>{done.length}</span>} sub="customers served today" />
@@ -945,7 +947,7 @@ function StaffDashboard({ appts, setAppts, user }) {
 }
 
 /* ============================ STAFF: SCHEDULE ============================ */
-function MySchedule({ appts, user }) {
+function MySchedule({ appts, user, onNew }) {
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(new Date(), i)), []);
   const [sel, setSel] = useState(() => toDateStr(days[0]));
   const selDate = days.find(d => toDateStr(d) === sel) || days[0];
@@ -955,7 +957,10 @@ function MySchedule({ appts, user }) {
     <Page>
       <Row between>
         <div><Eyebrow>MY SCHEDULE</Eyebrow><H1>Week of {MONTHS_SHORT[days[0].getMonth()]} {days[0].getDate()}</H1></div>
-        <div style={{ display: "flex", gap: 8 }}><IconBtn><ChevronLeft size={16} /></IconBtn><IconBtn><ChevronRight size={16} /></IconBtn></div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <GoldBtn onClick={onNew}><Plus size={16} /> Add Walk-In</GoldBtn>
+          <IconBtn><ChevronLeft size={16} /></IconBtn><IconBtn><ChevronRight size={16} /></IconBtn>
+        </div>
       </Row>
       <div className="days-grid-7">
         {days.map(date => {
@@ -1082,19 +1087,19 @@ function EditProfileModal({ staffMember, onClose, onUpdate, onChangePassword }) 
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+    <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>Edit Profile</div>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Edit Profile</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
         </div>
 
-        <div style={{ display: "flex", gap: 14 }}>
-          <div style={{ flex: 1 }}>
+        <div className="modal-2col" style={{ display: "flex", gap: 14 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>PHONE</label>
             <input style={field} value={phone} onChange={e => setPhone(e.target.value)} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>EMAIL</label>
             <input style={field} value={email} onChange={e => setEmail(e.target.value)} />
           </div>
@@ -1127,8 +1132,8 @@ const Info = ({ label, value }) => (
 );
 
 /* ============================ NEW APPOINTMENT MODAL ============================ */
-function NewApptModal({ services, staff, onClose, onSave }) {
-  const [f, setF] = useState({ customer: "", phone: "", service: services[0].name, date: todayStr(), time: nowTimeStr(), assigned: [], notes: "" });
+function NewApptModal({ services, staff, onClose, onSave, lockedStaff }) {
+  const [f, setF] = useState({ customer: "", phone: "", service: services[0].name, date: todayStr(), time: nowTimeStr(), assigned: lockedStaff ? [lockedStaff.short] : [], notes: "" });
   const price = services.find(s => s.name === f.service)?.price || 0;
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const toggleAssigned = short => setF(p => ({
@@ -1139,23 +1144,23 @@ function NewApptModal({ services, staff, onClose, onSave }) {
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
   const create = () => {
     if (!f.customer) return;
-    onSave({ ...f, price, status: f.assigned.length > 0 ? "assigned" : "pending" });
+    onSave({ ...f, price, status: lockedStaff ? "in_progress" : (f.assigned.length > 0 ? "assigned" : "pending") });
     onClose();
   };
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "grid", placeItems: "center", zIndex: 50, padding: 20 }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, padding: 26, boxSizing: "border-box" }}>
+    <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase" }}>New Appointment</div>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>{lockedStaff ? "Add Walk-In" : "New Appointment"}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
         </div>
 
-        <div style={{ display: "flex", gap: 14 }}>
-          <div style={{ flex: 1 }}>
+        <div className="modal-2col" style={{ display: "flex", gap: 14 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>CUSTOMER NAME</label>
             <input style={field} value={f.customer} onChange={e => set("customer", e.target.value)} placeholder="Full name" />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>PHONE NUMBER</label>
             <input style={field} value={f.phone} onChange={e => set("phone", e.target.value)} placeholder="01X-XXXXXXX" />
           </div>
@@ -1166,12 +1171,12 @@ function NewApptModal({ services, staff, onClose, onSave }) {
           {services.map(s => <option key={s.id}>{s.name} — RM{s.price}</option>)}
         </select>
 
-        <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
-          <div style={{ flex: 1 }}>
+        <div className="modal-2col" style={{ display: "flex", gap: 14, marginTop: 14 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>DATE</label>
             <input type="date" style={field} value={f.date} onChange={e => set("date", e.target.value)} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label style={lbl}>TIME</label>
             <input type="time" style={field} value={f.time} onChange={e => set("time", e.target.value)} />
           </div>
@@ -1182,35 +1187,43 @@ function NewApptModal({ services, staff, onClose, onSave }) {
           <span style={{ fontFamily: mono, fontWeight: 700, fontSize: 16, color: C.gold }}>RM {price}</span>
         </div>
 
-        <label style={{ ...lbl, marginTop: 14 }}>ASSIGN BARBER(S)</label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {staff.map(s => {
-            const selected = f.assigned.includes(s.short);
-            return (
-              <button
-                key={s.id}
-                onClick={() => toggleAssigned(s.short)}
-                style={{
-                  ...field,
-                  textAlign: "left",
-                  cursor: "pointer",
-                  border: selected ? `1px solid ${C.gold}` : `1px solid ${C.line}`,
-                  background: selected ? "rgba(212,175,69,.12)" : C.panelAlt,
-                  color: selected ? C.gold : C.text,
-                }}
-              >
-                {s.short}
-              </button>
-            );
-          })}
-        </div>
+        {lockedStaff ? (
+          <div style={{ marginTop: 14, background: "rgba(212,175,69,.08)", border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", fontSize: 13, color: C.sub }}>
+            Will be assigned to <span style={{ color: C.gold, fontWeight: 700 }}>{lockedStaff.short}</span> and marked <span style={{ color: C.gold }}>in progress</span> immediately.
+          </div>
+        ) : (
+          <>
+            <label style={{ ...lbl, marginTop: 14 }}>ASSIGN BARBER(S)</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {staff.map(s => {
+                const selected = f.assigned.includes(s.short);
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => toggleAssigned(s.short)}
+                    style={{
+                      ...field,
+                      textAlign: "left",
+                      cursor: "pointer",
+                      border: selected ? `1px solid ${C.gold}` : `1px solid ${C.line}`,
+                      background: selected ? "rgba(212,175,69,.12)" : C.panelAlt,
+                      color: selected ? C.gold : C.text,
+                    }}
+                  >
+                    {s.short}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         <label style={{ ...lbl, marginTop: 14 }}>NOTES (OPTIONAL)</label>
         <textarea style={{ ...field, minHeight: 70, resize: "vertical", fontFamily: body }} value={f.notes} onChange={e => set("notes", e.target.value)} placeholder="Any special instructions..." />
 
         <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
           <OutlineBtn onClick={onClose} style={{ flex: 1, justifyContent: "center", textAlign: "center" }}>Cancel</OutlineBtn>
-          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center" }}>Create Appointment</GoldBtn>
+          <GoldBtn onClick={create} style={{ flex: 1, justifyContent: "center" }}>{lockedStaff ? "Add Walk-In" : "Create Appointment"}</GoldBtn>
         </div>
       </div>
     </div>
@@ -1246,6 +1259,8 @@ export default function App() {
   const [modal, setModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   const role = authUser?.role || null;
 
@@ -1253,17 +1268,21 @@ export default function App() {
     api("/api/auth/me").then(r => r.ok ? r.json() : null).then(me => {
       if (me) setAuthUser(me);
       setAuthChecked(true);
-    });
+    }).catch(() => setAuthChecked(true));
   }, []);
 
   useEffect(() => {
     if (!role) return;
+    let cancelled = false;
+    setLoadError(false);
     Promise.all([
       api("/api/appointments").then(r => r.json()).then(setAppts),
       api("/api/services").then(r => r.json()).then(setServices),
       api("/api/staff").then(r => r.json()).then(setStaff),
-    ]).then(() => setLoaded(true));
-  }, [role]);
+    ]).then(() => { if (!cancelled) setLoaded(true); })
+      .catch(() => { if (!cancelled) setLoadError(true); });
+    return () => { cancelled = true; };
+  }, [role, retryKey]);
 
   const user = authUser
     ? (authUser.staff
@@ -1343,9 +1362,7 @@ export default function App() {
 
   if (!authChecked) return (
     <Shell>
-      <div style={{ minHeight: "100%", display: "grid", placeItems: "center", color: C.sub, fontFamily: mono, fontSize: 13, letterSpacing: 1 }}>
-        LOADING…
-      </div>
+      <LoadingScreen />
     </Shell>
   );
 
@@ -1353,9 +1370,7 @@ export default function App() {
 
   if (!loaded) return (
     <Shell>
-      <div style={{ minHeight: "100%", display: "grid", placeItems: "center", color: C.sub, fontFamily: mono, fontSize: 13, letterSpacing: 1 }}>
-        LOADING…
-      </div>
+      <LoadingScreen error={loadError} onRetry={() => setRetryKey(k => k + 1)} />
     </Shell>
   );
 
@@ -1367,8 +1382,8 @@ export default function App() {
     earnings: <Earnings staff={staff} />,
     analytics: <Analytics />,
     pricing: <Pricing services={services} setServices={setServices} />,
-    myDashboard: <StaffDashboard appts={appts} setAppts={setAppts} user={user} />,
-    mySchedule: <MySchedule appts={appts} user={user} />,
+    myDashboard: <StaffDashboard appts={appts} setAppts={setAppts} user={user} onNew={() => setModal(true)} />,
+    mySchedule: <MySchedule appts={appts} user={user} onNew={() => setModal(true)} />,
     profile: <Profile appts={appts} user={user} staff={staff} onUpdate={updateStaff} onChangePassword={changePassword} />,
   }[page];
 
@@ -1390,9 +1405,50 @@ export default function App() {
           <div style={{ height: 3, background: `linear-gradient(90deg, ${C.gold}, transparent 60%)` }} />
           {view}
         </main>
-        {modal && services.length > 0 && staff.length > 0 && <NewApptModal services={services} staff={staff} onClose={() => setModal(false)} onSave={addAppt} />}
+        {modal && services.length > 0 && staff.length > 0 && (
+          <NewApptModal
+            services={services}
+            staff={staff}
+            onClose={() => setModal(false)}
+            onSave={addAppt}
+            lockedStaff={role === "staff" ? user : undefined}
+          />
+        )}
       </div>
     </Shell>
+  );
+}
+
+function LoadingScreen({ error, onRetry }) {
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    if (error) return;
+    const t = setTimeout(() => setSlow(true), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
+
+  return (
+    <div style={{ minHeight: "100%", display: "grid", placeItems: "center", color: C.sub, fontFamily: mono, fontSize: 13, letterSpacing: 1, textAlign: "center", padding: 24 }}>
+      <div>
+        <div>{error ? "COULDN'T REACH THE SERVER…" : "LOADING…"}</div>
+        {!error && slow && (
+          <div style={{ marginTop: 12, fontSize: 11.5, color: C.faint, letterSpacing: 0.5, lineHeight: 1.6 }}>
+            Still waking up the server — this can take up to a minute on the first load.
+          </div>
+        )}
+        {error && (
+          <>
+            <div style={{ marginTop: 12, fontSize: 11.5, color: C.faint, letterSpacing: 0.5, lineHeight: 1.6 }}>
+              The server may be starting up or your connection dropped.
+            </div>
+            <button onClick={onRetry} style={{ marginTop: 18, background: C.gold, color: "#1a1a1a", border: "none", borderRadius: 4, padding: "10px 24px", fontFamily: body, fontWeight: 600, fontSize: 13, cursor: "pointer", letterSpacing: 1 }}>
+              RETRY
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 

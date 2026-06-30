@@ -221,12 +221,24 @@ app.get("/api/appointments", async (req, res) => {
   res.json(rows);
 });
 
-app.post("/api/appointments", requireAdmin, async (req, res) => {
-  const { date, time, customer, phone, service, price, assigned, status, notes } = req.body;
+app.post("/api/appointments", async (req, res) => {
+  const { date, time, customer, phone, service, price, notes } = req.body;
+  let assigned = req.body.assigned || [];
+  let status = req.body.status || "pending";
+
+  if (req.user.role !== "admin") {
+    // Staff can only log a walk-in for themselves, not assign other barbers.
+    const { rows: staffRows } = await pool.query("SELECT short FROM staff WHERE id = $1", [req.user.staffId]);
+    const me = staffRows[0];
+    if (!me) return res.status(403).json({ error: "Forbidden" });
+    assigned = [me.short];
+    status = "in_progress";
+  }
+
   const { rows } = await pool.query(
     `INSERT INTO appointments (date, time, customer, phone, service, price, assigned, status, notes)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-    [date, time, customer, phone, service, price, JSON.stringify(assigned || []), status || "pending", notes || ""]
+    [date, time, customer, phone, service, price, JSON.stringify(assigned), status, notes || ""]
   );
   res.status(201).json(rows[0]);
 });
