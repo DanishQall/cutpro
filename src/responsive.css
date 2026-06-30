@@ -151,6 +151,7 @@
 
 .login-split {
   display: flex;
+  min-height: 100vh;
 }
 .login-left,
 .login-right {
@@ -171,6 +172,8 @@
   }
   .login-left,
   .login-right {
+    flex: none;
+    min-height: 100vh;
     padding: 32px 24px;
   }
   .login-right {

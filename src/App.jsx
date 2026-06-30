@@ -203,11 +203,11 @@ function Login({ onLogin }) {
   const linkBtn = { background: "none", border: "none", padding: 0, color: "rgba(255,255,255,.75)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontFamily: body };
 
   return (
-    <div style={{ position: "relative", minHeight: "100%", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(10,10,12,.5)" }} />
+    <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "rgba(0,0,0,.58)" }} />
 
-      <div className="login-split" style={{ position: "relative", zIndex: 1, minHeight: "100%" }}>
+      <div className="login-split" style={{ position: "relative", zIndex: 1 }}>
         <div className="login-left">
           <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 26 }}>
             <Scissors size={18} color={C.gold} />
