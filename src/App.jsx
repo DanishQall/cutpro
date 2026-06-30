@@ -1478,7 +1478,7 @@ function Shell({ children }) {
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: ${C.bg}; }
         ::-webkit-scrollbar-thumb { background: ${C.line}; border-radius: 5px; }
-        select option { background: ${C.panel}; }
+        select option { background: #fff; color: #1a1a1a; }
         button:focus-visible, input:focus-visible { outline: 2px solid ${C.gold}; outline-offset: 1px; }
       `}</style>
       {children}
