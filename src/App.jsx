@@ -247,7 +247,7 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-split" style={{ minHeight: "100vh" }}>
-      <div className="login-left" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #15120a 0%, #3a2c12 55%, #8a6d1f 130%)" }}>
+      <div className="login-left" style={{ position: "relative", overflow: "hidden", backgroundImage: `linear-gradient(135deg, rgba(10,8,4,.78), rgba(10,8,4,.55) 55%, rgba(60,46,18,.65) 130%), url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center" }}>
         <svg style={{ position: "absolute", top: -90, left: -90, width: 420, height: 420, opacity: 0.22 }} viewBox="0 0 400 400">
           {arcs.map(r => <circle key={r} cx="200" cy="200" r={r} fill="none" stroke="#fff" strokeWidth="1" />)}
         </svg>
