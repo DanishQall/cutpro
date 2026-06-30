@@ -83,7 +83,7 @@ const H1 = ({ children }) => (
   <h1 className="h1-resp" style={{ fontFamily: display, fontWeight: 700, letterSpacing: 1, color: C.text, margin: 0, textTransform: "uppercase", lineHeight: 1 }}>{children}</h1>
 );
 const Card = ({ children, style }) => (
-  <div style={{ background: "rgba(255,255,255,.035)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 6, padding: 22, boxShadow: "0 4px 28px rgba(0,0,0,.22)", ...style }}>{children}</div>
+  <div style={{ background: "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015))", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,.14)", borderRadius: 8, padding: 22, boxShadow: "0 8px 32px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06)", ...style }}>{children}</div>
 );
 const Stat = ({ label, value, sub, subColor, icon }) => (
   <Card>
@@ -130,7 +130,7 @@ function Sidebar({ role, page, setPage, user, onLogout, open, onClose }) {
   const nav = role === "admin" ? NAV_ADMIN : NAV_STAFF;
   const go = k => { setPage(k); onClose(); };
   return (
-    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, background: "rgba(22,22,26,.7)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRight: `1px solid ${C.line}`, display: "flex", flexDirection: "column", height: "100%" }}>
+    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, background: "rgba(22,22,26,.88)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRight: "1px solid rgba(255,255,255,.1)", display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ padding: "20px 22px", borderBottom: `1px solid ${C.line}`, display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 38, height: 38, background: C.gold, borderRadius: 4, display: "grid", placeItems: "center" }}>
           <Scissors size={20} color="#1a1a1a" />
