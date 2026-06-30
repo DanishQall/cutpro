@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Scissors, LayoutGrid, ClipboardList, CalendarDays, Users, DollarSign,
   BarChart3, Tag, Settings, LogOut, Eye, EyeOff, TrendingUp, Clock,
-  UserRound, Plus, Search, Check, ChevronLeft, ChevronRight, Pencil,
+  UserRound, Plus, Search, Check, ChevronLeft, ChevronRight, ChevronDown, Pencil,
   Trash2, Star, Phone, Mail, UserPlus, CheckCircle2, User, Menu, X,
 } from "lucide-react";
 import "./responsive.css";
@@ -109,6 +109,48 @@ const Badge = ({ status }) => {
 const GoldBtn = ({ children, onClick, style }) => (
   <button onClick={onClick} style={{ fontFamily: body, fontWeight: 600, fontSize: 14, color: "#1a1a1a", background: C.gold, border: "none", borderRadius: 4, padding: "11px 18px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, ...style }}>{children}</button>
 );
+
+/* ============================ SELECT (custom-rendered dropdown) ============================
+   Native <select> option lists are rendered by the OS on Windows and ignore page CSS
+   for colors when the system is in dark mode, leaving white-field dropdowns unreadable.
+   This renders the popup ourselves so colors are always under our control. */
+function Select({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const onDocClick = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+  const current = options.find(o => o.value === value);
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "11px 13px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left" }}
+      >
+        <span>{current ? current.label : ""}</span>
+        <ChevronDown size={16} color="#5d5d66" />
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#fff", borderRadius: 4, boxShadow: "0 8px 24px rgba(0,0,0,.35)", zIndex: 20, maxHeight: 240, overflowY: "auto" }}>
+          {options.map(o => (
+            <div
+              key={o.value}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              style={{ padding: "10px 13px", color: "#1a1a1a", fontSize: 14, fontFamily: body, cursor: "pointer", background: o.value === value ? "#f0f0f0" : "#fff" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#f0f0f0"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = o.value === value ? "#f0f0f0" : "#fff"; }}
+            >
+              {o.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ============================ SIDEBAR ============================ */
 const NAV_ADMIN = [
@@ -688,9 +730,7 @@ function AddStaffModal({ onClose, onSave }) {
         <input style={field} value={f.name} onChange={e => set("name", e.target.value)} placeholder="e.g. James Lee" />
 
         <label style={{ ...lbl, marginTop: 14 }}>ROLE</label>
-        <select style={field} value={f.role} onChange={e => set("role", e.target.value)}>
-          {ROLES.map(r => <option key={r}>{r}</option>)}
-        </select>
+        <Select value={f.role} onChange={v => set("role", v)} options={ROLES.map(r => ({ value: r, label: r }))} />
 
         <label style={{ ...lbl, marginTop: 14 }}>USERNAME</label>
         <input style={field} value={f.username} onChange={e => set("username", e.target.value)} placeholder="e.g. james.lee" autoCapitalize="none" autoCorrect="off" />
@@ -1184,9 +1224,7 @@ function NewApptModal({ services, staff, onClose, onSave, lockedStaff }) {
         </div>
 
         <label style={{ ...lbl, marginTop: 14 }}>SERVICE TYPE</label>
-        <select style={field} value={f.service} onChange={e => set("service", e.target.value)}>
-          {services.map(s => <option key={s.id} value={s.name}>{s.name} — RM{s.price}</option>)}
-        </select>
+        <Select value={f.service} onChange={v => set("service", v)} options={services.map(s => ({ value: s.name, label: `${s.name} — RM${s.price}` }))} />
 
         <div className="modal-2col" style={{ display: "flex", gap: 14, marginTop: 14 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
