@@ -1168,7 +1168,7 @@ function NewApptModal({ services, staff, onClose, onSave, lockedStaff }) {
 
         <label style={{ ...lbl, marginTop: 14 }}>SERVICE TYPE</label>
         <select style={field} value={f.service} onChange={e => set("service", e.target.value)}>
-          {services.map(s => <option key={s.id}>{s.name} — RM{s.price}</option>)}
+          {services.map(s => <option key={s.id} value={s.name}>{s.name} — RM{s.price}</option>)}
         </select>
 
         <div className="modal-2col" style={{ display: "flex", gap: 14, marginTop: 14 }}>
