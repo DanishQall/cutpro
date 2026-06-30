@@ -188,12 +188,7 @@ function Login({ onLogin }) {
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [now, setNow] = useState(new Date());
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const [showDemo, setShowDemo] = useState(false);
 
   const submit = () => {
     if (!u || !p) return setErr("Username and password are required.");
@@ -203,56 +198,57 @@ function Login({ onLogin }) {
       .catch(e => setErr(e.message || "Username or password is incorrect."))
       .finally(() => setBusy(false));
   };
-  const field = { width: "100%", background: "rgba(27,27,32,.7)", border: `1px solid ${C.line}`, borderRadius: 3, padding: "13px 15px", color: C.text, fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
-  const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1.5, color: C.sub, marginBottom: 8, display: "block" };
-  const glass = { background: "rgba(20,20,24,.72)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.line}`, borderRadius: 4 };
-
-  const clock = now.toLocaleTimeString("en-GB", { hour12: false });
-  const tzHours = -now.getTimezoneOffset() / 60;
-  const tz = `UTC ${tzHours >= 0 ? "+" : ""}${tzHours}`;
+  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "14px 16px", color: "#1a1a1a", fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: body, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.85)", marginBottom: 8, display: "block" };
+  const linkBtn = { background: "none", border: "none", padding: 0, color: "rgba(255,255,255,.75)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontFamily: body };
 
   return (
-    <div style={{ position: "relative", minHeight: "100%", background: C.bg, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center", filter: "grayscale(.35) brightness(.42)" }} />
-      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, rgba(13,13,15,.45) 0%, rgba(13,13,15,.88) 65%, ${C.bg} 100%)` }} />
+    <div style={{ position: "relative", minHeight: "100%", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(10,10,12,.5)" }} />
 
-      <div className="login-hud-bar" style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "22px 28px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Scissors size={17} color={C.gold} />
-          <span style={{ fontFamily: display, fontWeight: 700, fontSize: 17, letterSpacing: 3, color: C.text }}>CUTPRO</span>
-        </div>
-        <div style={{ fontFamily: mono, fontSize: 11.5, letterSpacing: 1, color: C.sub }}>{clock} <span style={{ color: C.faint }}>[{tz}]</span></div>
-      </div>
-
-      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "grid", gridTemplateColumns: "minmax(0,1fr)", placeItems: "center", padding: 24, boxSizing: "border-box" }}>
-        <div style={{ width: 440, maxWidth: "100%" }}>
-          <div style={{ textAlign: "center", marginBottom: 26 }}>
-            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 3, color: C.gold, marginBottom: 8 }}>EMPLOYEE TERMINAL</div>
-            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 28, letterSpacing: 2, color: C.text, textTransform: "uppercase" }}>Sign In</div>
+      <div className="login-split" style={{ position: "relative", zIndex: 1, minHeight: "100%" }}>
+        <div className="login-left">
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 26 }}>
+            <Scissors size={18} color={C.gold} />
+            <span style={{ fontFamily: display, fontWeight: 700, fontSize: 16, letterSpacing: 3, color: "#fff" }}>CUTPRO</span>
           </div>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: "clamp(32px,5vw,52px)", lineHeight: 1.08, color: "#fff", textTransform: "uppercase" }}>
+            Welcome<br />Back
+          </div>
+          <p style={{ marginTop: 18, maxWidth: 380, color: "rgba(255,255,255,.75)", fontSize: 14.5, lineHeight: 1.7 }}>
+            Your single place to manage today's appointments, your schedule, and the shop floor — built for the staff and admins of CutPro Barber Shop.
+          </p>
+        </div>
 
-          <div style={{ ...glass, padding: 30 }}>
+        <div className="login-right">
+          <div style={{ width: "100%", maxWidth: 380 }}>
+            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 30, color: "#fff", marginBottom: 24, textTransform: "uppercase" }}>Sign In</div>
+
             <label style={lbl}>USERNAME</label>
             <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
             <label style={{ ...lbl, marginTop: 18 }}>PASSWORD</label>
             <div style={{ position: "relative" }}>
               <input style={field} type={show ? "text" : "password"} placeholder="Enter password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
-              <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub }}>
+              <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#5d5d66" }}>
                 {show ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {err && <div style={{ color: C.red, fontSize: 13, marginTop: 12 }}>{err}</div>}
-            <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "13px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
-          </div>
+            {err && <div style={{ color: "#ffb4b4", fontSize: 13, marginTop: 12 }}>{err}</div>}
+            <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 22, padding: "14px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
 
-          <div style={{ ...glass, marginTop: 16, padding: 20 }}>
-            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 2, color: C.faint, marginBottom: 14 }}>DEMO CREDENTIALS</div>
-            {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
-              <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(27,27,32,.6)", border: `1px solid ${C.line}`, borderRadius: 3, padding: "11px 14px", marginBottom: 8 }}>
-                <span style={{ fontSize: 13.5, color: C.text }}>{r}</span>
-                <span style={{ fontFamily: mono, fontSize: 12.5, color: C.gold }}>{c}</span>
+            <button style={{ ...linkBtn, marginTop: 16 }} onClick={() => setShowDemo(s => !s)}>{showDemo ? "Hide demo credentials" : "View demo credentials"}</button>
+
+            {showDemo && (
+              <div style={{ marginTop: 12 }}>
+                {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
+                  <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.18)", borderRadius: 3, padding: "10px 14px", marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: "#fff" }}>{r}</span>
+                    <span style={{ fontFamily: mono, fontSize: 12, color: C.gold }}>{c}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

@@ -147,6 +147,43 @@
   }
 }
 
+/* ============================ LOGIN ============================ */
+
+.login-split {
+  display: flex;
+}
+.login-left,
+.login-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  box-sizing: border-box;
+}
+.login-right {
+  align-items: flex-start;
+}
+@media (max-width: 860px) {
+  .login-split {
+    flex-direction: column;
+  }
+  .login-left,
+  .login-right {
+    padding: 32px 24px;
+  }
+  .login-right {
+    align-items: stretch;
+  }
+}
+@media (max-width: 480px) {
+  .login-left,
+  .login-right {
+    padding: 26px 18px;
+  }
+}
+
 /* ============================ APP SHELL / SIDEBAR ============================ */
 
 .app-shell {
