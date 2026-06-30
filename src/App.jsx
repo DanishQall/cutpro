@@ -240,9 +240,9 @@ function Login({ onLogin }) {
       .catch(e => setErr(e.message || "Username or password is incorrect."))
       .finally(() => setBusy(false));
   };
-  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "14px 16px", color: "#1a1a1a", fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
-  const lbl = { fontFamily: body, fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,.85)", marginBottom: 8, display: "block" };
-  const linkBtn = { background: "none", border: "none", padding: 0, color: "rgba(255,255,255,.75)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontFamily: body };
+  const field = { width: "100%", background: "rgba(255,255,255,.9)", border: "1px solid rgba(26,26,26,.08)", borderRadius: 10, padding: "14px 16px", color: "#1a1a1a", fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: body, fontSize: 13, fontWeight: 600, color: "rgba(26,26,26,.6)", marginBottom: 8, display: "block" };
+  const linkBtn = { background: "none", border: "none", padding: 0, color: "rgba(26,26,26,.65)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontFamily: body };
 
   return (
     <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
@@ -266,16 +266,16 @@ function Login({ onLogin }) {
         <div className="login-right">
           <div style={{
             width: "100%", maxWidth: 380,
-            background: "linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.07))",
-            backdropFilter: "blur(40px) saturate(110%)",
-            WebkitBackdropFilter: "blur(40px) saturate(110%)",
-            border: "1px solid rgba(255,255,255,.5)",
-            borderRadius: 20,
+            background: "linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.4))",
+            backdropFilter: "blur(50px) saturate(150%)",
+            WebkitBackdropFilter: "blur(50px) saturate(150%)",
+            border: "1px solid rgba(255,255,255,.8)",
+            borderRadius: 24,
             padding: "34px 32px",
-            boxShadow: "0 8px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 0 0 1px rgba(255,255,255,.1)",
+            boxShadow: "0 8px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 1px rgba(255,255,255,.2)",
             boxSizing: "border-box",
           }}>
-            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 30, color: "#fff", marginBottom: 24, textTransform: "uppercase" }}>Sign In</div>
+            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 30, color: "#1a1a1a", marginBottom: 24, textTransform: "uppercase" }}>Sign In</div>
 
             <label style={lbl}>USERNAME</label>
             <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
@@ -286,7 +286,7 @@ function Login({ onLogin }) {
                 {show ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {err && <div style={{ color: "#ffb4b4", fontSize: 13, marginTop: 12 }}>{err}</div>}
+            {err && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 12 }}>{err}</div>}
             <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 22, padding: "14px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
 
             <button style={{ ...linkBtn, marginTop: 16 }} onClick={() => setShowDemo(s => !s)}>{showDemo ? "Hide demo credentials" : "View demo credentials"}</button>
@@ -294,9 +294,9 @@ function Login({ onLogin }) {
             {showDemo && (
               <div style={{ marginTop: 12 }}>
                 {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
-                  <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,.08)", border: "1px solid rgba(255,255,255,.18)", borderRadius: 3, padding: "10px 14px", marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: "#fff" }}>{r}</span>
-                    <span style={{ fontFamily: mono, fontSize: 12, color: C.gold }}>{c}</span>
+                  <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,.5)", border: "1px solid rgba(26,26,26,.1)", borderRadius: 6, padding: "10px 14px", marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: "#1a1a1a" }}>{r}</span>
+                    <span style={{ fontFamily: mono, fontSize: 12, color: "#8a6d1f" }}>{c}</span>
                   </div>
                 ))}
               </div>
