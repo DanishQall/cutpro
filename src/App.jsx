@@ -10,6 +10,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid,
   BarChart, Bar, LineChart, Line, Legend, Tooltip,
 } from "recharts";
+import cutproBg from "./assets/cutprobg.png";
 
 /* ============================ THEME ============================ */
 const C = {
@@ -187,6 +188,12 @@ function Login({ onLogin }) {
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const submit = () => {
     if (!u || !p) return setErr("Username and password are required.");
@@ -196,44 +203,58 @@ function Login({ onLogin }) {
       .catch(e => setErr(e.message || "Username or password is incorrect."))
       .finally(() => setBusy(false));
   };
-  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "13px 15px", color: C.text, fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
+  const field = { width: "100%", background: "rgba(27,27,32,.7)", border: `1px solid ${C.line}`, borderRadius: 3, padding: "13px 15px", color: C.text, fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1.5, color: C.sub, marginBottom: 8, display: "block" };
+  const glass = { background: "rgba(20,20,24,.72)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: `1px solid ${C.line}`, borderRadius: 4 };
+
+  const clock = now.toLocaleTimeString("en-GB", { hour12: false });
+  const tzHours = -now.getTimezoneOffset() / 60;
+  const tz = `UTC ${tzHours >= 0 ? "+" : ""}${tzHours}`;
 
   return (
-    <div style={{ minHeight: "100%", background: C.bg, display: "grid", gridTemplateColumns: "minmax(0,1fr)", placeItems: "center", padding: 24, boxSizing: "border-box" }}>
-      <div style={{ width: 460, maxWidth: "100%" }}>
-        <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <div style={{ width: 70, height: 70, background: C.gold, borderRadius: 6, display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
-            <Scissors size={34} color="#1a1a1a" />
-          </div>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 34, letterSpacing: 4, color: C.text }}>CUTPRO</div>
-          <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: 3, color: C.faint, marginTop: 4 }}>EMPLOYEE MANAGEMENT SYSTEM</div>
+    <div style={{ position: "relative", minHeight: "100%", background: C.bg, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center", filter: "grayscale(.35) brightness(.42)" }} />
+      <div style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, rgba(13,13,15,.45) 0%, rgba(13,13,15,.88) 65%, ${C.bg} 100%)` }} />
+
+      <div className="login-hud-bar" style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "22px 28px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Scissors size={17} color={C.gold} />
+          <span style={{ fontFamily: display, fontWeight: 700, fontSize: 17, letterSpacing: 3, color: C.text }}>CUTPRO</span>
         </div>
+        <div style={{ fontFamily: mono, fontSize: 11.5, letterSpacing: 1, color: C.sub }}>{clock} <span style={{ color: C.faint }}>[{tz}]</span></div>
+      </div>
 
-        <Card style={{ padding: 30 }}>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, letterSpacing: 1, color: C.text, marginBottom: 22 }}>SIGN IN</div>
-          <label style={lbl}>USERNAME</label>
-          <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
-          <label style={{ ...lbl, marginTop: 18 }}>PASSWORD</label>
-          <div style={{ position: "relative" }}>
-            <input style={field} type={show ? "text" : "password"} placeholder="Enter password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
-            <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub }}>
-              {show ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "grid", gridTemplateColumns: "minmax(0,1fr)", placeItems: "center", padding: 24, boxSizing: "border-box" }}>
+        <div style={{ width: 440, maxWidth: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: 26 }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 3, color: C.gold, marginBottom: 8 }}>EMPLOYEE TERMINAL</div>
+            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 28, letterSpacing: 2, color: C.text, textTransform: "uppercase" }}>Sign In</div>
           </div>
-          {err && <div style={{ color: C.red, fontSize: 13, marginTop: 12 }}>{err}</div>}
-          <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "13px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
-        </Card>
 
-        <Card style={{ marginTop: 18, padding: 20 }}>
-          <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 2, color: C.faint, marginBottom: 14 }}>DEMO CREDENTIALS</div>
-          {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
-            <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 14px", marginBottom: 8 }}>
-              <span style={{ fontSize: 13.5, color: C.text }}>{r}</span>
-              <span style={{ fontFamily: mono, fontSize: 12.5, color: C.gold }}>{c}</span>
+          <div style={{ ...glass, padding: 30 }}>
+            <label style={lbl}>USERNAME</label>
+            <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
+            <label style={{ ...lbl, marginTop: 18 }}>PASSWORD</label>
+            <div style={{ position: "relative" }}>
+              <input style={field} type={show ? "text" : "password"} placeholder="Enter password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
+              <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub }}>
+                {show ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
-          ))}
-        </Card>
+            {err && <div style={{ color: C.red, fontSize: 13, marginTop: 12 }}>{err}</div>}
+            <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 24, padding: "13px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
+          </div>
+
+          <div style={{ ...glass, marginTop: 16, padding: 20 }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, letterSpacing: 2, color: C.faint, marginBottom: 14 }}>DEMO CREDENTIALS</div>
+            {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
+              <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(27,27,32,.6)", border: `1px solid ${C.line}`, borderRadius: 3, padding: "11px 14px", marginBottom: 8 }}>
+                <span style={{ fontSize: 13.5, color: C.text }}>{r}</span>
+                <span style={{ fontFamily: mono, fontSize: 12.5, color: C.gold }}>{c}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
