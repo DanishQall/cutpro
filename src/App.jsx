@@ -83,7 +83,7 @@ const H1 = ({ children }) => (
   <h1 className="h1-resp" style={{ fontFamily: display, fontWeight: 700, letterSpacing: 1, color: C.text, margin: 0, textTransform: "uppercase", lineHeight: 1 }}>{children}</h1>
 );
 const Card = ({ children, style }) => (
-  <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 4, padding: 22, ...style }}>{children}</div>
+  <div style={{ background: "rgba(255,255,255,.035)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,.09)", borderRadius: 6, padding: 22, boxShadow: "0 4px 28px rgba(0,0,0,.22)", ...style }}>{children}</div>
 );
 const Stat = ({ label, value, sub, subColor, icon }) => (
   <Card>
@@ -130,7 +130,7 @@ function Sidebar({ role, page, setPage, user, onLogout, open, onClose }) {
   const nav = role === "admin" ? NAV_ADMIN : NAV_STAFF;
   const go = k => { setPage(k); onClose(); };
   return (
-    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, background: C.panel, borderRight: `1px solid ${C.line}`, display: "flex", flexDirection: "column", height: "100%" }}>
+    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, background: "rgba(22,22,26,.7)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRight: `1px solid ${C.line}`, display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ padding: "20px 22px", borderBottom: `1px solid ${C.line}`, display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 38, height: 38, background: C.gold, borderRadius: 4, display: "grid", placeItems: "center" }}>
           <Scissors size={20} color="#1a1a1a" />
@@ -361,8 +361,8 @@ function Appointments({ appts, setAppts, onNew }) {
 
       <div style={{ display: "flex", gap: 12, margin: "18px 0", alignItems: "center", flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: "1 1 220px" }}>
-          <Search size={16} color={C.faint} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or phone…" style={{ width: "100%", background: C.card, border: `1px solid ${C.line}`, borderRadius: 4, padding: "12px 12px 12px 40px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
+          <Search size={16} color="#5d5d66" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name or phone…" style={{ width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "12px 12px 12px 40px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" }} />
         </div>
         {["all", "pending", "assigned", "completed"].map(f => (
           <button key={f} onClick={() => setFilter(f)} style={{
@@ -557,7 +557,7 @@ function ManageAccountModal({ staffMember, onClose, onUpdateUsername, onResetPas
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "11px 13px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
 
   const saveUsername = () => {
@@ -591,7 +591,7 @@ function ManageAccountModal({ staffMember, onClose, onUpdateUsername, onResetPas
 
   return (
     <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Manage Account — {staffMember.name}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
@@ -607,7 +607,7 @@ function ManageAccountModal({ staffMember, onClose, onUpdateUsername, onResetPas
         <div style={{ display: "flex", gap: 10 }}>
           <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
             <input style={field} type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" />
-            <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+            <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#5d5d66", display: "flex" }}>
               {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
@@ -643,7 +643,7 @@ function AddStaffModal({ onClose, onSave }) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
-  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "11px 13px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
   const create = () => {
     if (!f.name) return setErr("Full name is required.");
@@ -678,7 +678,7 @@ function AddStaffModal({ onClose, onSave }) {
   };
   return (
     <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Add Staff</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
@@ -698,7 +698,7 @@ function AddStaffModal({ onClose, onSave }) {
         <label style={{ ...lbl, marginTop: 14 }}>PASSWORD</label>
         <div style={{ position: "relative" }}>
           <input style={field} type={showPw ? "text" : "password"} value={f.password} onChange={e => set("password", e.target.value)} placeholder="Min. 8 characters" />
-          <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+          <button onClick={() => setShowPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#5d5d66", display: "flex" }}>
             {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
@@ -706,7 +706,7 @@ function AddStaffModal({ onClose, onSave }) {
         <label style={{ ...lbl, marginTop: 14 }}>CONFIRM PASSWORD</label>
         <div style={{ position: "relative" }}>
           <input style={field} type={showConfirmPw ? "text" : "password"} value={f.confirmPassword} onChange={e => set("confirmPassword", e.target.value)} placeholder="Re-enter password" />
-          <button onClick={() => setShowConfirmPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.sub, display: "flex" }}>
+          <button onClick={() => setShowConfirmPw(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#5d5d66", display: "flex" }}>
             {showConfirmPw ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
@@ -1083,7 +1083,7 @@ function EditProfileModal({ staffMember, onClose, onUpdate, onChangePassword }) 
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "11px 13px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
 
   const saveContact = () => {
@@ -1105,7 +1105,7 @@ function EditProfileModal({ staffMember, onClose, onUpdate, onChangePassword }) 
 
   return (
     <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>Edit Profile</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
@@ -1157,7 +1157,7 @@ function NewApptModal({ services, staff, onClose, onSave, lockedStaff }) {
     ...p,
     assigned: p.assigned.includes(short) ? p.assigned.filter(x => x !== short) : [...p.assigned, short],
   }));
-  const field = { width: "100%", background: C.panelAlt, border: `1px solid ${C.line}`, borderRadius: 4, padding: "11px 13px", color: C.text, fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
+  const field = { width: "100%", background: "#fff", border: "none", borderRadius: 4, padding: "11px 13px", color: "#1a1a1a", fontFamily: body, fontSize: 14, outline: "none", boxSizing: "border-box" };
   const lbl = { fontFamily: mono, fontSize: 11, letterSpacing: 1, color: C.sub, marginBottom: 6, display: "block" };
   const create = () => {
     if (!f.customer) return;
@@ -1166,7 +1166,7 @@ function NewApptModal({ services, staff, onClose, onSave, lockedStaff }) {
   };
   return (
     <div onClick={onClose} className="modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: C.panel, border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
+      <div onClick={e => e.stopPropagation()} className="modal-box" style={{ width: 480, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto", background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", border: `1px solid ${C.line}`, borderRadius: 6, boxSizing: "border-box" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontFamily: display, fontWeight: 700, fontSize: 22, color: C.text, textTransform: "uppercase", flex: 1, minWidth: 0, wordBreak: "break-word" }}>{lockedStaff ? "Add Walk-In" : "New Appointment"}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.sub, cursor: "pointer", padding: 4, display: "flex" }}><X size={20} /></button>
@@ -1410,7 +1410,7 @@ export default function App() {
         <Sidebar role={role} page={page} setPage={setPage} user={user} onLogout={logout} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className={`sidebar-backdrop${sidebarOpen ? " open" : ""}`} onClick={() => setSidebarOpen(false)} />
         <main className="main-content" style={{ background: C.bg }}>
-          <div className="mobile-topbar" style={{ alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: `1px solid ${C.line}`, background: C.panel }}>
+          <div className="mobile-topbar" style={{ alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: `1px solid ${C.line}`, background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <button onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: C.text, cursor: "pointer", display: "flex" }}>
               <Menu size={22} />
             </button>
