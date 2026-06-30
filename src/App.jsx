@@ -240,68 +240,65 @@ function Login({ onLogin }) {
       .catch(e => setErr(e.message || "Username or password is incorrect."))
       .finally(() => setBusy(false));
   };
-  const field = { width: "100%", background: "rgba(255,255,255,.9)", border: "1px solid rgba(26,26,26,.08)", borderRadius: 10, padding: "14px 16px", color: "#1a1a1a", fontFamily: body, fontSize: 15, outline: "none", boxSizing: "border-box" };
-  const lbl = { fontFamily: body, fontSize: 13, fontWeight: 600, color: "rgba(26,26,26,.6)", marginBottom: 8, display: "block" };
-  const linkBtn = { background: "none", border: "none", padding: 0, color: "rgba(26,26,26,.65)", fontSize: 13, cursor: "pointer", textDecoration: "underline", fontFamily: body };
+  const field = { width: "100%", background: "#f4f4f5", border: "1px solid #e6e6e8", borderRadius: 8, padding: "13px 15px", color: "#1a1a1a", fontFamily: body, fontSize: 14.5, outline: "none", boxSizing: "border-box" };
+  const lbl = { fontFamily: body, fontSize: 13, fontWeight: 600, color: "#3a3a3e", marginBottom: 7, display: "block" };
+  const linkBtn = { background: "none", border: "none", padding: 0, color: C.goldSoft, fontSize: 13, fontWeight: 600, cursor: "pointer", textDecoration: "underline", fontFamily: body };
+  const arcs = [60, 110, 160, 210, 260];
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, zIndex: 0, backgroundImage: `url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-      <div style={{ position: "absolute", inset: 0, zIndex: 0, background: "rgba(0,0,0,.58)" }} />
-
-      <div className="login-split" style={{ position: "relative", zIndex: 1 }}>
-        <div className="login-left">
+    <div className="login-split" style={{ minHeight: "100vh" }}>
+      <div className="login-left" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #15120a 0%, #3a2c12 55%, #8a6d1f 130%)" }}>
+        <svg style={{ position: "absolute", top: -90, left: -90, width: 420, height: 420, opacity: 0.22 }} viewBox="0 0 400 400">
+          {arcs.map(r => <circle key={r} cx="200" cy="200" r={r} fill="none" stroke="#fff" strokeWidth="1" />)}
+        </svg>
+        <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 26 }}>
-            <Scissors size={18} color={C.gold} />
-            <span style={{ fontFamily: display, fontWeight: 700, fontSize: 16, letterSpacing: 3, color: "#fff" }}>CUTPRO</span>
+            <Scissors size={26} color="#fff" />
           </div>
-          <div style={{ fontFamily: display, fontWeight: 700, fontSize: "clamp(32px,5vw,52px)", lineHeight: 1.08, color: "#fff", textTransform: "uppercase" }}>
-            Welcome<br />Back
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: "clamp(28px,4.5vw,42px)", lineHeight: 1.15, color: "#fff" }}>
+            Hello, CutPro! 👋
           </div>
-          <p style={{ marginTop: 18, maxWidth: 380, color: "rgba(255,255,255,.75)", fontSize: 14.5, lineHeight: 1.7 }}>
-            Your single place to manage today's appointments, your schedule, and the shop floor — built for the staff and admins of CutPro Barber Shop.
+          <p style={{ marginTop: 16, maxWidth: 380, color: "rgba(255,255,255,.8)", fontSize: 14.5, lineHeight: 1.7 }}>
+            Manage today's appointments, your schedule, and the shop floor — all in one place, built for the staff and admins of CutPro Barber Shop.
           </p>
         </div>
+      </div>
 
-        <div className="login-right">
-          <div style={{
-            width: "100%", maxWidth: 380,
-            background: "linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.4))",
-            backdropFilter: "blur(50px) saturate(150%)",
-            WebkitBackdropFilter: "blur(50px) saturate(150%)",
-            border: "1px solid rgba(255,255,255,.8)",
-            borderRadius: 24,
-            padding: "34px 32px",
-            boxShadow: "0 8px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 1px rgba(255,255,255,.2)",
-            boxSizing: "border-box",
-          }}>
-            <div style={{ fontFamily: display, fontWeight: 700, fontSize: 30, color: "#1a1a1a", marginBottom: 24, textTransform: "uppercase" }}>Sign In</div>
+      <div className="login-right" style={{ background: "#fff" }}>
+        <div style={{ width: "100%", maxWidth: 360 }}>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 17, letterSpacing: 1, color: "#1a1a1a" }}>CUTPRO</div>
 
-            <label style={lbl}>USERNAME</label>
-            <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
-            <label style={{ ...lbl, marginTop: 18 }}>PASSWORD</label>
-            <div style={{ position: "relative" }}>
-              <input style={field} type={show ? "text" : "password"} placeholder="Enter password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
-              <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#5d5d66" }}>
-                {show ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            {err && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 12 }}>{err}</div>}
-            <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 22, padding: "14px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Sign In"}</GoldBtn>
+          <div style={{ fontFamily: display, fontWeight: 700, fontSize: 26, color: "#1a1a1a", marginTop: 22 }}>Welcome Back!</div>
+          <p style={{ marginTop: 6, marginBottom: 24, color: "#8a8a93", fontSize: 13.5 }}>
+            Staff and admin accounts are created by your manager.
+          </p>
 
-            <button style={{ ...linkBtn, marginTop: 16 }} onClick={() => setShowDemo(s => !s)}>{showDemo ? "Hide demo credentials" : "View demo credentials"}</button>
-
-            {showDemo && (
-              <div style={{ marginTop: 12 }}>
-                {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
-                  <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,.5)", border: "1px solid rgba(26,26,26,.1)", borderRadius: 6, padding: "10px 14px", marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: "#1a1a1a" }}>{r}</span>
-                    <span style={{ fontFamily: mono, fontSize: 12, color: "#8a6d1f" }}>{c}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+          <label style={lbl}>USERNAME</label>
+          <input style={field} placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
+          <label style={{ ...lbl, marginTop: 16 }}>PASSWORD</label>
+          <div style={{ position: "relative" }}>
+            <input style={field} type={show ? "text" : "password"} placeholder="Enter password" value={p} onChange={e => { setP(e.target.value); setErr(""); }} onKeyDown={e => e.key === "Enter" && submit()} />
+            <button onClick={() => setShow(s => !s)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#8a8a93" }}>
+              {show ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
+          {err && <div style={{ color: "#c0392b", fontSize: 13, marginTop: 12 }}>{err}</div>}
+          <GoldBtn onClick={submit} style={{ width: "100%", justifyContent: "center", marginTop: 20, padding: "13px", opacity: busy ? 0.6 : 1 }}>{busy ? "Signing In…" : "Login Now"}</GoldBtn>
+
+          <div style={{ marginTop: 16, textAlign: "center" }}>
+            <button style={linkBtn} onClick={() => setShowDemo(s => !s)}>{showDemo ? "Hide demo credentials" : "View demo credentials"}</button>
+          </div>
+
+          {showDemo && (
+            <div style={{ marginTop: 12 }}>
+              {[["Admin", "admin / admin123"], ["Staff", "jordan / pass123"]].map(([r, c]) => (
+                <div key={r} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f4f4f5", border: "1px solid #e6e6e8", borderRadius: 6, padding: "10px 14px", marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: "#1a1a1a" }}>{r}</span>
+                  <span style={{ fontFamily: mono, fontSize: 12, color: "#8a6d1f" }}>{c}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
