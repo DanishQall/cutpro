@@ -130,7 +130,7 @@ function Sidebar({ role, page, setPage, user, onLogout, open, onClose }) {
   const nav = role === "admin" ? NAV_ADMIN : NAV_STAFF;
   const go = k => { setPage(k); onClose(); };
   return (
-    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, background: "rgba(22,22,26,.88)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRight: "1px solid rgba(255,255,255,.1)", display: "flex", flexDirection: "column", height: "100%" }}>
+    <aside className={`sidebar${open ? " open" : ""}`} style={{ width: 248, minWidth: 248, backgroundImage: `linear-gradient(180deg, rgba(10,10,12,.88), rgba(10,10,12,.93)), url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderRight: "1px solid rgba(255,255,255,.1)", display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ padding: "20px 22px", borderBottom: `1px solid ${C.line}`, display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 38, height: 38, background: C.gold, borderRadius: 4, display: "grid", placeItems: "center" }}>
           <Scissors size={20} color="#1a1a1a" />
@@ -1410,7 +1410,7 @@ export default function App() {
         <Sidebar role={role} page={page} setPage={setPage} user={user} onLogout={logout} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className={`sidebar-backdrop${sidebarOpen ? " open" : ""}`} onClick={() => setSidebarOpen(false)} />
         <main className="main-content" style={{ background: C.bg }}>
-          <div className="mobile-topbar" style={{ alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: `1px solid ${C.line}`, background: "rgba(22,22,26,.85)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
+          <div className="mobile-topbar" style={{ alignItems: "center", gap: 14, padding: "14px 18px", borderBottom: `1px solid ${C.line}`, backgroundImage: `linear-gradient(180deg, rgba(10,10,12,.88), rgba(10,10,12,.93)), url(${cutproBg})`, backgroundSize: "cover", backgroundPosition: "center", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)" }}>
             <button onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: C.text, cursor: "pointer", display: "flex" }}>
               <Menu size={22} />
             </button>
